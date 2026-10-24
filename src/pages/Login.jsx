@@ -25,7 +25,7 @@ export default function Login() {
     <form onSubmit={enviar} className="nf-card p-4 p-md-5" style={{ maxWidth: 420, width: '100%' }}>
       <div className="text-center mb-4">
         <h2 className="fw-bold text-primary"><i className="bi bi-flower2 me-2"></i>NutriFlow</h2>
-        <p className="text-secondary small mb-0">Entre para descobrir o que há no seu prato</p>
+        <p className="text-secondary small mb-0">Entre e descubra o que há em seus alimentos</p>
       </div>
 
       <div className="mb-3">

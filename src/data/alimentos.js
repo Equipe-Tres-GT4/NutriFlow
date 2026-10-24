@@ -2,7 +2,7 @@ export const receitas = [
   {
     id: 1,
     nome: 'Panqueca de banana',
-    imagem: '/img/panqueca.jpg',   // coloque as fotos em public/img
+    imagem: '/panqueca.jpg',
     tempo: '20 min',
     nota: 4.7,
     tags: ['vegetariano'],
@@ -12,5 +12,5 @@ export const receitas = [
       { nome: 'Banana', alergenos: [] },
     ],
   },
-  // ...
+  
 ]

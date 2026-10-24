@@ -49,7 +49,7 @@ export default function Home() {
             </div>
           </div>
           <div className="col-md-6 text-center">
-            <img src="/img/hero-bowl.jpg" alt="Bowl de alimentos saudáveis" className="img-fluid" style={{ maxHeight: 320, width: 320, objectFit: 'cover' }} />
+            <img src="/img/panqueca.jpg" alt="Bowl de alimentos saudáveis" className="img-fluid" style={{ maxHeight: 320, width: 320, objectFit: 'cover' }} />
           </div>
         </div>
       </section>
