@@ -1,0 +1,19 @@
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  padding: 10px 40px;
+  background-color: #ffffff;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.logo-icon {
+  width: 100px;
+  height: auto;
+  object-fit: contain;
+}
