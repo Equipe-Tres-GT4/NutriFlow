@@ -1,3 +1,16 @@
+import Header from "./components/Header";
+
+function App() {
+  return (
+    <div>
+      <Header/>
+      <h1>Funcionando</h1>
+    </div>
+  );
+}
+
+
+export default App;
 import { Routes, Route } from 'react-router-dom'
 import Login from './pages/Login'
 import Cadastro from './pages/Cadastro'
