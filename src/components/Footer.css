@@ -1,0 +1,118 @@
+.footer {
+  background: #184f3e;
+  color: #dff3e8;
+  border-radius: 20px;
+  margin: 24px 16px;
+  padding: 32px 0 24px;
+  text-align: left;
+}
+
+.footer-inner {
+  width: 100%;
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 24px;
+  box-sizing: border-box;
+}
+
+/* Duas colunas de links (sem depender do Bootstrap) */
+.footer-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+/* Logo + descrição */
+.footer-brand {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.footer-leaf {
+  flex-shrink: 0;
+  margin-top: 4px;
+  font-size: 28px;
+  color: #a8dcc0;
+}
+
+.footer-brand h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.footer-description {
+  margin: 4px 0 0;
+  font-size: 0.95rem;
+  color: #dff3e8;
+}
+
+/* Divisórias */
+.footer-divider {
+  margin: 24px 0;
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+  opacity: 1;
+}
+
+/* Colunas de links */
+.footer h5 {
+  margin: 0 0 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.footer-links {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.footer-links li {
+  margin-bottom: 2px;
+}
+
+.footer-links a {
+  font-size: 0.95rem;
+  color: #dff3e8;
+  text-decoration: none;
+}
+
+.footer-links a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+/* Rodapé inferior */
+.footer-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.footer-copyright {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #dff3e8;
+}
+
+.footer-social {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.footer-social a {
+  display: flex;
+  font-size: 20px;
+  color: #fff;
+  transition: opacity 0.2s;
+}
+
+.footer-social a:hover {
+  opacity: 0.75;
+}
