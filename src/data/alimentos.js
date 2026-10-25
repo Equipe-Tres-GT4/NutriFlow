@@ -83,7 +83,7 @@ export const alimentos = [
       contem: [],
       podeConter: ["soja"],
     },
-    
+
     restricoes: {
       gluten: "nao_contem",
       lactose: "nao_contem",
@@ -104,79 +104,44 @@ export const alimentos = [
 
   {
     id: 5,
-    nome: "Milho puro",
-    marca: null,
-    ingredientes: ["Milho"],
+    nome: "Achocolatado em Pó NESCAU 2.0",
+    marca: "Nestlé",
+    ingredientes: [
+      "Açúcar",
+      "Cacau em pó",
+      "Maltodextrina",
+      "Minerais",
+      "Vitaminas",
+      "Soro de leite em pó",
+      "Emulsificante lecitina",
+      "Aromatizante"
+    ],
+
     alergenicos: {
-      contem: [],
-      podeConter: [],
+      contem: ["Leite", "Soja", "Glutén"],
+      podeConter: ["Trigo", "Aveia", "Cevada"],
     },
+
     restricoes: {
-      gluten: "nao_contem",
-      lactose: "nao_contem",
-      vegetariano: "sim",
-      vegano: "sim",
-    },
-    fonte: "Alimento natural - dados gerais",
-  },
-  {
-    id: 6,
-    nome: "Banana",
-    marca: null,
-    ingredientes: ["Banana"],
-    alergenicos: {
-      contem: [],
-      podeConter: [],
-    },
-    restricoes: {
-      gluten: "nao_contem",
-      lactose: "nao_contem",
-      vegetariano: "sim",
-      vegano: "sim",
-    },
-    fonte: "Alimento natural - dados gerais",
-  },
-  {
-    id: 7,
-    nome: "Maçã",
-    marca: null,
-    ingredientes: ["Maçã"],
-    alergenicos: {
-      contem: [],
-      podeConter: [],
-    },
-    restricoes: {
-      gluten: "nao_contem",
-      lactose: "nao_contem",
-      vegetariano: "sim",
-      vegano: "sim",
-    },
-    fonte: "Alimento natural - dados gerais",
-  },
-  {
-    id: 8,
-    nome: "Ovo",
-    marca: null,
-    ingredientes: ["Ovo"],
-    alergenicos: {
-      contem: ["ovo"],
-      podeConter: [],
-    },
-    restricoes: {
-      gluten: "nao_contem",
-      lactose: "nao_contem",
-      vegetariano: "sim",
+      gluten: "contem",
+      lactose: "contem",
+      vegetariano: "nao_confirmado",
       vegano: "nao",
     },
-    fonte: "Alimento natural - dados gerais",
+    fonte: {
+      tipo: "produto_industrializado",
+      descricao: "Achocolatado em pó com sabor chocolate",
+      url: "https://www.paodeacucar.com/produto/586542/achocolatado-em-po-nescau-550g"
+    }
   },
+
   {
-    id: 9,
-    nome: "Leite de vaca",
-    marca: null,
-    ingredientes: ["Leite"],
+    id: 6,
+    nome: "Leite Integral UHT",
+    marca: "Italac",
+    ingredientes: ["Leite Integral"],
     alergenicos: {
-      contem: ["leite"],
+      contem: ["Leite"],
       podeConter: [],
     },
     restricoes: {
@@ -185,23 +150,12 @@ export const alimentos = [
       vegetariano: "sim",
       vegano: "nao",
     },
-    fonte: "Alimento natural - dados gerais",
-  },
-  {
-    id: 10,
-    nome: "Peito de frango",
-    marca: null,
-    ingredientes: ["Frango"],
-    alergenicos: {
-      contem: [],
-      podeConter: [],
+    fonte: {
+      tipo: "produto_industrializado",
+      descricao: "Leite Integral UHT Italac",
+      url: "https://www.italac.com.br/"
     },
-    restricoes: {
-      gluten: "nao_contem",
-      lactose: "nao_contem",
-      vegetariano: "nao",
-      vegano: "nao",
-    },
-    fonte: "Alimento natural - dados gerais",
+
+    dataConsulta: "25-10-2026"
   },
 ];
