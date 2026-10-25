@@ -1,0 +1,96 @@
+:root {
+  --nf-verde-escuro: #245c45;
+  --nf-verde: #5b8a4a;
+  --nf-verde-claro: #85a55c;
+  --nf-menta: #e6f0e4;
+  --nf-creme: #f7f3ea;
+  --nf-texto: #1f3329;
+
+  /* sobrescreve as variáveis do Bootstrap */
+  --bs-primary: var(--nf-verde-escuro);
+  --bs-primary-rgb: 36, 92, 69;
+  --bs-link-color: var(--nf-verde-escuro);
+  --bs-link-hover-color: var(--nf-verde);
+  --bs-body-color: var(--nf-texto);
+  --bs-body-bg: var(--nf-creme);
+  --bs-body-font-family: 'Inter', system-ui, sans-serif;
+  --bs-border-radius-lg: 1rem;
+}
+
+.btn-primary {
+  --bs-btn-bg: var(--nf-verde-escuro);
+  --bs-btn-border-color: var(--nf-verde-escuro);
+  --bs-btn-hover-bg: var(--nf-verde);
+  --bs-btn-hover-border-color: var(--nf-verde);
+  --bs-btn-active-bg: var(--nf-verde);
+  --bs-btn-active-border-color: var(--nf-verde);
+  --bs-btn-disabled-bg: var(--nf-verde-escuro);
+  --bs-btn-disabled-border-color: var(--nf-verde-escuro);
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--nf-verde-escuro);
+  --bs-btn-border-color: var(--nf-verde-escuro);
+  --bs-btn-hover-bg: var(--nf-verde-escuro);
+  --bs-btn-hover-border-color: var(--nf-verde-escuro);
+  --bs-btn-active-bg: var(--nf-verde-escuro);
+}
+
+.form-control:focus {
+  border-color: var(--nf-verde);
+  box-shadow: 0 0 0 0.2rem rgba(91, 138, 74, 0.2);
+}
+
+/* navbar */
+.nf-navbar { background: #fff; box-shadow: 0 2px 12px rgba(36, 92, 69, 0.08); }
+.nf-navbar .nav-link { color: var(--nf-texto); font-weight: 500; font-size: 0.9rem; }
+.nf-navbar .nav-link.active { color: var(--nf-verde-escuro); border-bottom: 2px solid var(--nf-verde-escuro); }
+
+/* hero */
+.nf-hero {
+  background: linear-gradient(135deg, var(--nf-menta) 0%, #f4f9f1 100%);
+  border-radius: 1.5rem;
+}
+.nf-hero h1 { color: var(--nf-verde-escuro); font-weight: 800; }
+.nf-hero img { border-radius: 50%; box-shadow: 0 20px 40px rgba(36, 92, 69, 0.2); }
+
+/* chips de filtro (Sem glúten, Vegano...) */
+.nf-chip {
+  background: #fff;
+  border: 2px solid transparent;
+  border-radius: 1rem;
+  padding: 1rem 0.5rem;
+  width: 100%;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(36, 92, 69, 0.06);
+}
+.nf-chip .nf-chip-icone {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 48px; height: 48px; border-radius: 50%;
+  background: var(--nf-verde-escuro); color: #fff; font-size: 1.3rem;
+  margin-bottom: 0.5rem;
+}
+.nf-chip:hover { transform: translateY(-3px); }
+.nf-chip.ativo { border-color: var(--nf-verde-escuro); background: var(--nf-menta); }
+
+/* cards */
+.nf-card {
+  border: 0; border-radius: 1rem; overflow: hidden; background: #fff;
+  box-shadow: 0 4px 16px rgba(36, 92, 69, 0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.nf-card:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(36, 92, 69, 0.15); }
+.nf-card img { height: 180px; object-fit: cover; }
+
+.nf-selo { background: var(--nf-menta); color: var(--nf-verde-escuro); font-weight: 600; }
+.nf-selo-alerta { background: #fdecea; color: #b3392f; font-weight: 600; }
+
+/* footer */
+.nf-footer { background: var(--nf-verde-escuro); color: #fff; border-radius: 1.5rem 1.5rem 0 0; }
+.nf-footer a { color: rgba(255, 255, 255, 0.8); text-decoration: none; }
+.nf-footer a:hover { color: #fff; }
+
+/* login / cadastro */
+.nf-auth { min-height: 100vh; background: linear-gradient(135deg, var(--nf-menta), var(--nf-creme)); }
