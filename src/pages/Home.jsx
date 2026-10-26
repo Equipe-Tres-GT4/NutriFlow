@@ -107,32 +107,3 @@
 //     </>
 //   )
 // }
-
-
-import { alimentos } from '../data/alimentos'
-
-function Home() {
-  return (
-    <section className="row g-3 mb-5">
-      {alimentos.map((alimento) => (
-        <div className="col-6 col-md-4 col-lg-2" key={alimento.id}>
-          <div className="border rounded p-2 h-100 text-center">
-            <img
-              src={alimento.imagem}
-              alt={alimento.nome}
-              style={{
-                width: '100%',
-                height: '140px',
-                objectFit: 'contain',
-              }}
-            />
-
-            <p className="small mt-2 mb-0">{alimento.nome}</p>
-          </div>
-        </div>
-      ))}
-    </section>
-  )
-}
-
-export default Home
