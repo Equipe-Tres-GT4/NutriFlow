@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { receitas } from '../data/receitas'
+import { receitas } from '../data/alimentos'
 
 const FILTROS = [
   { id: 'gluten', label: 'Sem glúten', icone: 'bi-ban', tipo: 'evitar', valor: 'glúten' },
@@ -66,7 +66,7 @@ export default function Home() {
         ))}
       </section>
 
-      {/* Alimentos */}
+      {/* RECEITAS */}
       <section>
         <div className="d-flex justify-content-between align-items-center mb-3">
           <h4 className="fw-bold mb-0">Receitas em destaque</h4>
