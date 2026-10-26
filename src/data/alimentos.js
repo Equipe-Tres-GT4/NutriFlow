@@ -3,6 +3,7 @@ export const alimentos = [
     id: 1,
     nome: "Arroz branco",
     marca: "Namorado",
+    imagem: "/arrozbranco.png",
     ingredientes: ["Arroz branco"],
     alergenicos: {
       contem: [],
@@ -27,6 +28,7 @@ export const alimentos = [
     id: 2,
     nome: "Feijão Carioca Tipo 1",
     marca: "Kicaldo",
+    imagem: "/feijaokicaldo.jpg",
     ingredientes: ["Feijão"],
     alergenicos: {
       contem: [],
@@ -53,6 +55,7 @@ export const alimentos = [
     id: 3,
     nome: "Batata Inglesa",
     marca: null,
+    imagem: "/batatainglesa.jpg",
     ingredientes: ["Batata Inglesa"],
     alergenicos: {
       contem: [],
@@ -78,6 +81,7 @@ export const alimentos = [
     id: 4,
     nome: "Yoki Milho para Pipoca Premium",
     marca: "Yoki",
+    imagem: "/yokimilho.jpg",
     ingredientes: ["Milho de Pipoca"],
     alergenicos: {
       contem: [],
@@ -106,6 +110,7 @@ export const alimentos = [
     id: 5,
     nome: "Achocolatado em Pó NESCAU 2.0",
     marca: "Nestlé",
+    imagem: "/nescaunestle.jpg",
     ingredientes: [
       "Açúcar",
       "Cacau em pó",
@@ -125,7 +130,7 @@ export const alimentos = [
     restricoes: {
       gluten: "contem",
       lactose: "contem",
-      vegetariano: "nao_confirmado",
+      vegetariano: "desconhecido",
       vegano: "nao",
     },
     fonte: {
@@ -139,6 +144,7 @@ export const alimentos = [
     id: 6,
     nome: "Leite Integral UHT",
     marca: "Italac",
+    imagem: "/leiteintegral.jpg",
     ingredientes: ["Leite Integral"],
     alergenicos: {
       contem: ["Leite"],
