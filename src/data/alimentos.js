@@ -1,3 +1,20 @@
+// ALIMENTOS INICIAIS DO NUTRIFLOW
+//
+// GLÚTEN E LACTOSE:
+// "contem"       = presença confirmada.
+// "nao_contem"   = ausência indicada pelas informações consultadas.
+// "nao_confirmado" = informação insuficiente.
+//
+// VEGETARIANO E VEGANO:
+// "sim" = o alimento se enquadra na categoria.
+// "nao" = o alimento não se enquadra na categoria.
+// "nao_confirmado" = não há informações suficientes.
+//
+// ALERGÊNICOS:
+// "contem" = alergênico declarado como presente.
+// "podeConter" = possível presença declarada pela fonte.
+
+
 export const alimentos = [
   {
     id: 1,
@@ -16,12 +33,12 @@ export const alimentos = [
       vegano: "sim",
     },
     fonte: {
-      tipo: "pagina-desuper-mercado",
+      tipo: "pagina-de-supermercado",
       descricao: "Arroz Branco T1 Namorado 1 kg",
       url: "https://pedejadelivery.instabuy.app.br/p/arroz-lf-t1-1-kg-namorado",
     },
 
-    dataConsulta: "25-10-2026"
+    dataConsulta: "2026-10-25"
   },
 
   {
@@ -46,7 +63,7 @@ export const alimentos = [
       url: "https://www.paodeacucar.com/produto/109209/feijao-carioca-tipo-1-kicaldo-pacote-1-kg",
     },
 
-    dataConsulta: "25-10-2026"
+    dataConsulta: "2026-10-25"
 
   },
 
@@ -71,9 +88,10 @@ export const alimentos = [
     fonte: {
       tipo: "alimento_in_natura",
       descricao: "Composição natural da batata inglesa",
+      url: "https://nepa.unicamp.br/wp-content/uploads/sites/27/2023/10/taco_4_edicao_ampliada_e_revisada.pdf"
     },
 
-    dataConsulta: "25-10-2026"
+    dataConsulta: "2026-10-25"
   },
 
 
@@ -101,7 +119,7 @@ export const alimentos = [
       url: "https://www.yoki.com.br/produtos/pipoca-premium-500-g",
     },
 
-    dataConsulta: "25-10-2026",
+    dataConsulta: "2026-10-25",
 
   },
 
@@ -130,14 +148,16 @@ export const alimentos = [
     restricoes: {
       gluten: "contem",
       lactose: "contem",
-      vegetariano: "desconhecido",
+      vegetariano: "nao_confirmado",
       vegano: "nao",
     },
     fonte: {
       tipo: "produto_industrializado",
       descricao: "Achocolatado em pó com sabor chocolate",
       url: "https://www.paodeacucar.com/produto/586542/achocolatado-em-po-nescau-550g"
-    }
+    },
+
+    dataConsulta: "2026-10-25"
   },
 
   {
@@ -162,6 +182,6 @@ export const alimentos = [
       url: "https://www.italac.com.br/"
     },
 
-    dataConsulta: "25-10-2026"
+    dataConsulta: "2026-10-25"
   },
 ];
