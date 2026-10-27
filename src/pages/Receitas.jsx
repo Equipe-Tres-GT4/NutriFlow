@@ -1,34 +1,31 @@
-import { receitas } from '../data/alimentos'
+import React, { useState } from 'react';
+import { RecipeCard } from '../components/ui/RecipeCard';
+import { receitasMock } from '../receitasMockdata';
 
 export default function Receitas() {
-  return (
-    <section>
-      <div className="mb-4">
-        <p className="text-primary fw-semibold mb-1">Receitas</p>
-        <h2 className="fw-bold mb-0">Sugestões práticas para o dia a dia</h2>
-      </div>
+  const [receitas] = useState(receitasMock);
 
-      <div className="row g-4">
-        {receitas.map((receita) => (
-          <div className="col-12 col-md-6 col-lg-4" key={receita.id}>
-            <article className="nf-card h-100 overflow-hidden">
-              <img src={receita.imagem} alt={receita.nome} className="w-100" style={{ height: 200, objectFit: 'cover' }} />
-              <div className="p-3">
-                <h5 className="fw-bold mb-2">{receita.nome}</h5>
-                <p className="small text-secondary mb-2">
-                  <i className="bi bi-clock me-1"></i>{receita.tempo}
-                  <span className="ms-3 text-warning"><i className="bi bi-star-fill me-1"></i>{receita.nota}</span>
-                </p>
-                <ul className="small text-secondary mb-0 ps-3">
-                  {receita.ingredientes.map((ingrediente) => (
-                    <li key={`${receita.id}-${ingrediente.nome}`}>{ingrediente.nome}</li>
-                  ))}
-                </ul>
-              </div>
-            </article>
-          </div>
-        ))}
-      </div>
-    </section>
-  )
+  return (
+    <div className="container py-5">
+      <header className="mb-5 text-center">
+        <h1 className="fw-bold text-success display-5 mb-2">Receitas da comunidade</h1>
+        <p className="text-secondary lead mx-auto" style={{ maxWidth: '650px' }}>
+          Explore receitas deliciosas e saudáveis compartilhadas por nossa comunidade. 
+          Encontre inspiração para a sua rotina alimentar de forma simples e acessível.
+        </p>
+      </header>
+
+      {receitas.length === 0 ? (
+        <div className="text-center py-5 bg-light rounded-3 border">
+          <p className="fs-5 text-muted mb-0">Nenhuma receita disponível no momento.</p>
+        </div>
+      ) : (
+        <div className="row g-4">
+          {receitas.map((receita) => (
+            <RecipeCard key={receita.id} receita={receita} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
