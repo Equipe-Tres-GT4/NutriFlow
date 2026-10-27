@@ -1,60 +1,59 @@
-import { Container, Row, Col } from "react-bootstrap";
-import { Link } from "react-router-dom";
-import { FaLeaf, FaInstagram, FaFacebookF, FaYoutube } from "react-icons/fa";
+import { LuLeaf, LuInstagram, LuFacebook, LuYoutube } from "react-icons/lu";
+
 import "./Footer.css";
 
 export default function Footer() {
   return (
-    <footer className="nf-footer mt-5 py-5">
-      <Container>
-        <Row className="g-4">
-          <Col xs={12} md={5}>
-            <h5 className="fw-bold">
-              <FaLeaf className="me-2" />
-              NutriFlow
-            </h5>
-            <p className="small opacity-75">
+    <footer className="footer">
+      <div className="footer-inner">
+        {/* Logo e descrição */}
+        <div className="footer-brand">
+          <LuLeaf className="footer-leaf" />
+          <div>
+            <h3>NutriFlow</h3>
+            <p className="footer-description">
               Alimentação consciente, vida melhor.
             </p>
-          </Col>
+          </div>
+        </div>
 
-          <Col xs={6} md={3}>
-            <h6 className="fw-bold">Links rápidos</h6>
-            <ul className="list-unstyled small">
-              <li><Link to="/">Início</Link></li>
-              <li><Link to="/pesquisa">Pesquisa</Link></li>
-              <li><Link to="/receitas">Receitas</Link></li>
+        <hr className="footer-divider" />
+
+        {/* Links */}
+        <div className="footer-columns">
+          <div>
+            <h5>Links rápidos</h5>
+            <ul className="footer-links">
+              <li><a href="#inicio">Início</a></li>
+              <li><a href="#categorias">Pesquisar alimentos</a></li>
+              <li><a href="#receitas">Receitas</a></li>
             </ul>
-          </Col>
+          </div>
 
-          <Col xs={6} md={4}>
-            <h6 className="fw-bold">Suporte</h6>
-            <ul className="list-unstyled small">
+          <div>
+            <h5>Suporte</h5>
+            <ul className="footer-links">
               <li><a href="#sobre">Sobre nós</a></li>
               <li><a href="#contato">Contato</a></li>
-              <li><a href="#faq">FAQ</a></li>
+              <li><a href="#faq">Perguntas frequentes</a></li>
             </ul>
-          </Col>
-        </Row>
+          </div>
+        </div>
 
-        <hr />
+        <hr className="footer-divider" />
 
-        <Row className="align-items-center gy-3">
-          <Col xs={12} md={8}>
-            <small>
-              © {new Date().getFullYear()} NutriFlow.
-              Todos os direitos reservados.
-            </small>
-          </Col>
+        {/* Copyright e redes sociais */}
+        <div className="footer-bottom">
+          <p className="footer-copyright">© 2026 NutriFlow</p>
 
-          <Col xs={12} md={4} className="nf-redes-sociais">
+          <div className="footer-social">
             <a
               href="https://www.instagram.com/"
               aria-label="Instagram"
               target="_blank"
               rel="noreferrer"
             >
-              <FaInstagram />
+              <LuInstagram />
             </a>
             <a
               href="https://www.facebook.com/"
@@ -62,7 +61,7 @@ export default function Footer() {
               target="_blank"
               rel="noreferrer"
             >
-              <FaFacebookF />
+              <LuFacebook />
             </a>
             <a
               href="https://www.youtube.com/"
@@ -70,11 +69,11 @@ export default function Footer() {
               target="_blank"
               rel="noreferrer"
             >
-              <FaYoutube />
+              <LuYoutube />
             </a>
-          </Col>
-        </Row>
-      </Container>
+          </div>
+        </div>
+      </div>
     </footer>
   );
 }
