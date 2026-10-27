@@ -1,11 +1,10 @@
-import { Routes, Route } from 'react-router-dom';
-
-import Login from './pages/Login';
-import Cadastro from './pages/Cadastro';
-import Home from './pages/Home';
-import Layout from './components/Layout';
-import RotaProtegida from './auth/RotaProtegida';
+import { Routes, Route, Navigate } from 'react-router-dom'
+import Login from './pages/Login'
+import Cadastro from './pages/Cadastro'
 import Catalogo from './components/Catalogo';
+import Layout from './components/Layout';
+import Home from './pages/Home';
+
 
 export default function App() {
   return (
@@ -13,11 +12,15 @@ export default function App() {
       {/* Páginas públicas */}
       <Route path="/login" element={<Login />} />
       <Route path="/cadastro" element={<Cadastro />} />
+      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
+      
+    </Routes>
 
-      {/* Catálogo */}
+{/* Catálogo */}
       <Route path="/catalogo" element={<Catalogo />} />
-
-      {/* Páginas protegidas */}
+        
+         {/* Páginas protegidas */}
       <Route
         element={
           <RotaProtegida>
@@ -28,5 +31,6 @@ export default function App() {
         <Route path="/" element={<Home />} />
       </Route>
     </Routes>
+
   );
 }
