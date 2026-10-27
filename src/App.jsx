@@ -1,4 +1,3 @@
-
 import { Routes, Route } from 'react-router-dom';
 
 import Login from './pages/Login';
@@ -15,10 +14,10 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/cadastro" element={<Cadastro />} />
 
-      {/* Catálogo para testar busca e filtros */}
+      {/* Catálogo */}
       <Route path="/catalogo" element={<Catalogo />} />
 
-      {/* Páginas protegidas que usam o Header do Layout */}
+      {/* Páginas protegidas */}
       <Route
         element={
           <RotaProtegida>
