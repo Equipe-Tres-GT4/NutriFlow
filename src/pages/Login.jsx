@@ -1,20 +1,22 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 
 export default function Login() {
   const { entrar } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [form, setForm] = useState({ email: '', senha: '' })
   const [erro, setErro] = useState('')
 
   const mudar = (e) => setForm({ ...form, [e.target.name]: e.target.value })
 
-  function enviar(e) {
+  async function enviar(e) {
     e.preventDefault()
     try {
-      entrar(form)
-      navigate('/')
+      await entrar(form)
+      const destino = location.state?.from
+      navigate(typeof destino === 'string' && destino.startsWith('/') && !destino.startsWith('//') ? destino : '/', { replace: true })
     } catch (err) {
       setErro(err.message)
     }
@@ -37,6 +39,7 @@ export default function Login() {
         <input name="senha" type="password" className="form-control form-control-lg" value={form.senha} onChange={mudar} required />
       </div>
 
+      {location.state?.contaCriada && <div className="alert alert-success py-2 small" role="status">Conta criada! Entre com seu e-mail e sua senha.</div>}
       {erro && <div className="alert alert-danger py-2 small" role="alert">{erro}</div>}
 
       <button type="submit" className="btn btn-primary btn-lg w-100 mt-2">Entrar</button>
