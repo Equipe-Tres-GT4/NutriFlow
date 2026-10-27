@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 
@@ -7,9 +6,11 @@ import './Header.css';
 
 function Header({ isAuthenticated = false }) {
   const [menuAberto, setMenuAberto] = useState(false);
+  const [perfilAberto, setPerfilAberto] = useState(false);
 
   function fecharMenu() {
     setMenuAberto(false);
+    setPerfilAberto(false);
   }
 
   const linkClass = ({ isActive }) =>
@@ -17,100 +18,130 @@ function Header({ isAuthenticated = false }) {
 
   return (
     <header className="cabecalho">
-      <nav className="navbar navbar-expand-lg navbar-light container-fluid">
-        <Link
-          to="/"
-          className="logo d-flex align-items-center"
-          onClick={fecharMenu}
-        >
-          <img
-            src={logo}
-            alt="Logo do NutriFlow"
-            className="logo-icon"
-          />
+      <nav className="navbar navbar-expand-lg container-fluid">
+        <div className="header-conteudo">
 
-        </Link>
+          <Link
+            to="/"
+            className="logo"
+            onClick={fecharMenu}
+          >
+            <img
+              src={logo}
+              alt="Logo do NutriFlow"
+              className="logo-icon"
+            />
+          </Link>
 
-        <button
-          className="navbar-toggler"
-          type="button"
-          aria-controls="menuNutriFlow"
-          aria-expanded={menuAberto}
-          aria-label="Abrir ou fechar menu"
-          onClick={() => setMenuAberto(!menuAberto)}
-        >
-          <span className="navbar-toggler-icon"></span>
-        </button>
+          
+          <button
+            className="botao-menu-mobile"
+            type="button"
+            aria-label="Abrir menu"
+            aria-expanded={menuAberto}
+            onClick={() => setMenuAberto(!menuAberto)}
+          >
+            <i className="bi bi-list"></i>
+          </button>
 
-        <div
-          id="menuNutriFlow"
-          className={`collapse navbar-collapse ${
-            menuAberto ? 'show' : ''
-          }`}
-        >
-          <div className="navbar-nav ms-auto menu">
-            <NavLink
-              to="/"
-              end
-              className={linkClass}
-              onClick={fecharMenu}
-            >
-              Início
-            </NavLink>
+          <div
+            className={`area-navegacao ${
+              menuAberto ? 'menu-aberto' : ''
+            }`}
+          >
+            <div className="menu">
+              <NavLink
+                to="/"
+                end
+                className={linkClass}
+                onClick={fecharMenu}
+              >
+                Início
+              </NavLink>
 
-            <NavLink
-              to="/alimentos"
-              className={linkClass}
-              onClick={fecharMenu}
-            >
-              Alimentos
-            </NavLink>
+              <NavLink
+                to="/alimentos"
+                className={linkClass}
+                onClick={fecharMenu}
+              >
+                Alimentos
+              </NavLink>
 
-            <NavLink
-              to="/receitas"
-              className={linkClass}
-              onClick={fecharMenu}
-            >
-              Receitas
-            </NavLink>
+              <NavLink
+                to="/receitas"
+                className={linkClass}
+                onClick={fecharMenu}
+              >
+                Receitas
+              </NavLink>
+            </div>
 
-            {isAuthenticated ? (
-              <>
-                <NavLink
-                  to="/perfil"
-                  className={linkClass}
-                  onClick={fecharMenu}
+            <div className="acoes-header">
+
+              <Link
+                to="/alimentos"
+                className="icone-header"
+                aria-label="Pesquisar alimentos"
+                onClick={fecharMenu}
+              >
+                <i className="bi bi-search"></i>
+              </Link>
+
+              <div className="perfil-container">
+                <button
+                  type="button"
+                  className="icone-header"
+                  aria-label="Menu do perfil"
+                  aria-expanded={perfilAberto}
+                  onClick={() => setPerfilAberto(!perfilAberto)}
                 >
-                  Perfil
-                </NavLink>
+                  <i className="bi bi-person"></i>
+                </button>
 
-                <NavLink
-                  to="/salvos"
-                  className={linkClass}
-                  onClick={fecharMenu}
-                >
-                  Salvos
-                </NavLink>
-              </>
-            ) : (
-              <>
-                <NavLink
-                  to="/login"
-                  className={linkClass}
-                  onClick={fecharMenu}
-                >
-                  Login
-                </NavLink>
+                {perfilAberto && (
+                  <div className="menu-perfil">
+                    {isAuthenticated ? (
+                      <>
+                        <Link
+                          to="/perfil"
+                          onClick={fecharMenu}
+                        >
+                          <i className="bi bi-person me-2"></i>
+                          Perfil
+                        </Link>
 
-                <NavLink
-                  to="/cadastro"
-                  className={linkClass}
-                  onClick={fecharMenu}
-                >
-                  Cadastrar
-                </NavLink>
-              </>
-            )}
+                        <Link
+                          to="/salvos"
+                          onClick={fecharMenu}
+                        >
+                          <i className="bi bi-bookmark me-2"></i>
+                          Salvos
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        <Link
+                          to="/login"
+                          onClick={fecharMenu}
+                        >
+                          <i className="bi bi-box-arrow-in-right me-2"></i>
+                          Entrar
+                        </Link>
+
+                        <Link
+                          to="/cadastro"
+                          onClick={fecharMenu}
+                        >
+                          <i className="bi bi-person-plus me-2"></i>
+                          Cadastrar
+                        </Link>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+
+            </div>
           </div>
         </div>
       </nav>
