@@ -1,16 +1,26 @@
-import Footer from './components/Footer'
 
-function App() {
+import { Routes, Route } from 'react-router-dom'
+import Login from './pages/Login'
+import Cadastro from './pages/Cadastro'
+import Home from './pages/Home'
+import Layout from './components/Layout'
+import RotaProtegida from './auth/RotaProtegida'
+
+export default function App() {
   return (
-    <>
-      <main>
-        <h1>NutriFlow</h1>
-        <p>Bem-vindo ao NutriFlow!</p>
-      </main>
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/cadastro" element={<Cadastro />} />
 
-      <Footer />
-    </>
+      <Route
+        element={
+          <RotaProtegida>
+            <Layout />
+          </RotaProtegida>
+        }
+      >
+        <Route path="/" element={<Home />} />
+      </Route>
+    </Routes>
   )
 }
-
-export default App
