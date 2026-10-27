@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { RecipeCard } from '../components/ui/RecipeCard';
-import { receitasMock } from '../receitasMockdata';
+import { useState } from 'react';
+import { RecipeCard } from '../components/RecipeCard';
+import { receitasMock } from '../data/receitasMock';
 
 export default function Receitas() {
   const [receitas] = useState(receitasMock);
