@@ -1,16 +1,25 @@
 import { useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext';
 
 import logo from '../assets/nutrilogo.png';
 import './Header.css';
 
 function Header({ isAuthenticated = false }) {
+  const { sair } = useAuth();
+  const navigate = useNavigate();
   const [menuAberto, setMenuAberto] = useState(false);
   const [perfilAberto, setPerfilAberto] = useState(false);
 
   function fecharMenu() {
     setMenuAberto(false);
     setPerfilAberto(false);
+  }
+
+  function encerrarSessao() {
+    sair();
+    fecharMenu();
+    navigate('/');
   }
 
   const linkClass = ({ isActive }) =>
@@ -117,6 +126,15 @@ function Header({ isAuthenticated = false }) {
                           <i className="bi bi-bookmark me-2"></i>
                           Salvos
                         </Link>
+
+                        <button
+                          type="button"
+                          className="acao-sair-perfil"
+                          onClick={encerrarSessao}
+                        >
+                          <i className="bi bi-box-arrow-right me-2"></i>
+                          Sair
+                        </button>
                       </>
                     ) : (
                       <>
