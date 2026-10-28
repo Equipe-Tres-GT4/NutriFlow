@@ -11,8 +11,7 @@ export default function Layout() {
       <nav className="navbar navbar-expand-md nf-navbar sticky-top">
         <div className="container">
           <Link className="navbar-brand fw-bold text-primary" to="/">
-            <i className="bi bi-flower2 me-2"></i>
-            NutriFlow
+            <i className="bi bi-flower2 me-2"></i>NutriFlow
           </Link>
 
           <button
