@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import Footer from './Footer'
 
-export default function Layout({ children }) {
+export default function Layout() {
   const { usuario, sair } = useAuth()
 
   return (
@@ -65,7 +65,9 @@ export default function Layout({ children }) {
         </div>
       </nav>
 
-      <main className="container py-4">{children}</main>
+      <main className="container py-4">
+        <Outlet />
+      </main>
 
       <Footer />
     </>

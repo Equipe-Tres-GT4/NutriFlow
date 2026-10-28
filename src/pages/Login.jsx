@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 
 export default function Login() {
   const { entrar } = useAuth()
+  const navigate = useNavigate()
   const [form, setForm] = useState({ email: '', senha: '' })
   const [mostrarSenha, setMostrarSenha] = useState(false)
   const [modoRecuperacao, setModoRecuperacao] = useState(false)
@@ -51,7 +52,7 @@ export default function Login() {
     try {
       entrar(form)
       setErro('')
-      setSucesso(`Bem-vindo, ${form.email}!`)
+      navigate('/catalogo')
     } catch (err) {
       setSucesso('')
       setErro(err.message)
