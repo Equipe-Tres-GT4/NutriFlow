@@ -1,64 +1,35 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { useAuth } from './auth/AuthContext'
+import Header from './components/Header'
+import Home from './pages/Home'
 import Login from './pages/Login'
 import Cadastro from './pages/Cadastro'
-import Catalogo from './components/Catalogo';
-import Layout from './components/Layout';
-import Home from './pages/Home';
-import Receitas from './pages/Receitas';
-import RotaProtegida from './auth/RotaProtegida';
-
+import Catalogo from './components/Catalogo'
+import Receitas from './pages/Receitas'
 
 export default function App() {
+  const { usuario } = useAuth()
+
   return (
-    <Routes>
-      {/* Páginas públicas */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/cadastro" element={<Cadastro />} />
-      <Route path="/catalogo" element={<Catalogo />} />
+    <>
+      <Header isAuthenticated={Boolean(usuario)} />
 
-      {/* Páginas protegidas */}
-      <Route
-        element={
-          <RotaProtegida>
-            <Layout />
-          </RotaProtegida>
-        }
-      >
+      <Routes>
+        {/* Consultas públicas: não precisam de login. */}
         <Route path="/" element={<Home />} />
+        <Route path="/alimentos" element={<Catalogo />} />
         <Route path="/receitas" element={<Receitas />} />
-      </Route>
 
-      <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
-  );
+        {/* Compatibilidade com os endereços usados por outras telas. */}
+        <Route path="/catalogo" element={<Navigate to="/alimentos" replace />} />
+        <Route path="/pesquisa" element={<Navigate to="/alimentos" replace />} />
+
+        {/* Autenticação. */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/cadastro" element={<Cadastro />} />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
+  )
 }
-
-
-
-
-
-
-
-// import { Routes, Route } from 'react-router-dom'
-
-// import Header from './components/Header'
-// import Home from './pages/Home'
-// import Login from './pages/Login'
-// import Cadastro from './pages/Cadastro'
-// import Catalogo from './components/Catalogo'
-
-// export default function App() {
-//   return (
-//     <>
-//       <Header />
-
-//       <Routes>
-//         <Route path="/" element={<Home />} />
-//         <Route path="/alimentos" element={<Catalogo />} />
-//         <Route path="/receitas" element={<Home />} />
-//         <Route path="/login" element={<Login />} />
-//         <Route path="/cadastro" element={<Cadastro />} />
-//       </Routes>
-//     </>
-//   )
-// }
