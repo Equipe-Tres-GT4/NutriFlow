@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 
 export default function Login() {
-  const { entrar } = useAuth()
+  const { entrar, redefinirSenha } = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState({ email: '', senha: '' })
   const [mostrarSenha, setMostrarSenha] = useState(false)
@@ -19,7 +19,6 @@ export default function Login() {
     e.preventDefault()
 
     if (modoRecuperacao) {
-      const email = form.email.trim().toLowerCase()
       if (senhaNova.length < 6) {
         setErro('A senha precisa ter pelo menos 6 caracteres.')
         setSucesso('')
@@ -31,21 +30,17 @@ export default function Login() {
         return
       }
 
-      const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]')
-      const indiceUsuario = usuarios.findIndex((usuario) => usuario.email === email)
-      if (indiceUsuario === -1) {
-        setErro('Não encontramos uma conta com este e-mail.')
+      try {
+        redefinirSenha({ email: form.email, senha: senhaNova })
+        setErro('')
+        setSenhaNova('')
+        setConfirmarSenha('')
+        setModoRecuperacao(false)
+        setSucesso('Senha alterada. Você já pode entrar com a nova senha.')
+      } catch (err) {
+        setErro(err.message)
         setSucesso('')
-        return
       }
-
-      usuarios[indiceUsuario].senha = senhaNova
-      localStorage.setItem('usuarios', JSON.stringify(usuarios))
-      setErro('')
-      setSenhaNova('')
-      setConfirmarSenha('')
-      setModoRecuperacao(false)
-      setSucesso('Senha alterada. Você já pode entrar com a nova senha.')
       return
     }
 
@@ -75,7 +70,7 @@ export default function Login() {
         {modoRecuperacao ? (
           <>
             <div className="alert alert-info py-2 small" role="note">
-              Este protótipo não envia e-mails. A senha será alterada diretamente neste navegador.
+              Protótipo local: não há verificação por e-mail. Use apenas uma senha de teste.
             </div>
             <div className="mb-3">
               <label htmlFor="nova-senha" className="form-label small fw-semibold">Nova senha</label>
