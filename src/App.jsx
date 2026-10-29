@@ -17,8 +17,8 @@ export default function App() {
       <Header isAuthenticated={Boolean(usuario)} />
 
       <Routes>
-        {/* A vitrine é a primeira tela dos visitantes; a home original segue para usuários. */}
-        <Route path="/" element={usuario ? <Home /> : <Visualizacao />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/visualizacao" element={<Visualizacao />} />
         <Route path="/alimentos" element={<RotaProtegida><Catalogo /></RotaProtegida>} />
         <Route path="/receitas" element={<RotaProtegida><Receitas /></RotaProtegida>} />
 
