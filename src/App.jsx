@@ -6,6 +6,8 @@ import Login from './pages/Login'
 import Cadastro from './pages/Cadastro'
 import Catalogo from './components/Catalogo'
 import Receitas from './pages/Receitas'
+import Visualizacao from './pages/Visualizacao'
+import RotaProtegida from './auth/RotaProtegida'
 
 export default function App() {
   const { usuario } = useAuth()
@@ -15,10 +17,10 @@ export default function App() {
       <Header isAuthenticated={Boolean(usuario)} />
 
       <Routes>
-        {/* Consultas públicas: não precisam de login. */}
-        <Route path="/" element={<Home />} />
-        <Route path="/alimentos" element={<Catalogo />} />
-        <Route path="/receitas" element={<Receitas />} />
+        {/* A vitrine é a primeira tela dos visitantes; a home original segue para usuários. */}
+        <Route path="/" element={usuario ? <Home /> : <Visualizacao />} />
+        <Route path="/alimentos" element={<RotaProtegida><Catalogo /></RotaProtegida>} />
+        <Route path="/receitas" element={<RotaProtegida><Receitas /></RotaProtegida>} />
 
         {/* Compatibilidade com os endereços usados por outras telas. */}
         <Route path="/catalogo" element={<Navigate to="/alimentos" replace />} />
