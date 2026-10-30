@@ -15,19 +15,20 @@ export default function App() {
       <Header isAuthenticated={Boolean(usuario)} />
 
       <Routes>
-        {/* Consultas públicas: não precisam de login. */}
+        {/* Consultas públicas */}
         <Route path="/" element={<Home />} />
         <Route path="/alimentos" element={<Catalogo />} />
         <Route path="/receitas" element={<Receitas />} />
 
-        {/* Compatibilidade com os endereços usados por outras telas. */}
+        {/* Compatibilidade de rotas */}
         <Route path="/catalogo" element={<Navigate to="/alimentos" replace />} />
         <Route path="/pesquisa" element={<Navigate to="/alimentos" replace />} />
 
-        {/* Autenticação. */}
+        {/* Autenticação */}
         <Route path="/login" element={<Login />} />
         <Route path="/cadastro" element={<Cadastro />} />
 
+        {/* Redirecionamento padrão */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
