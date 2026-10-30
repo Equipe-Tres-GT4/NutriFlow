@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
-import { useAuth } from '../../auth/AuthContext'
+import { useAuth } from '../auth/AuthContext'
 
 export default function Layout() {
   const { usuario, sair } = useAuth()
