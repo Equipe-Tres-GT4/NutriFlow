@@ -1,5 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { receitas as dadosReceitas } from '../data/receitas'
+import { useRecipes } from '../context/RecipeContext'
 
 // Configuração dos filtros com ícones nativos do Bootstrap (bi bi-*)
 const FILTROS = [
@@ -20,43 +22,72 @@ const CATEGORIAS = [
 export default function Home() {
   const [busca, setBusca] = useState('')
   const [filtrosAtivos, setFiltrosAtivos] = useState([])
-  const [favoritos, setFavoritos] = useState([])
 
-  // Alterna ativação dos filtros
+  const { recipes: receitasGlobais, savedRecipeIds, toggleSaveRecipe } = useRecipes()
+
+  const baseReceitas = useMemo(() => {
+    if (Array.isArray(receitasGlobais) && receitasGlobais.length > 0) {
+      return receitasGlobais
+    }
+    return Array.isArray(dadosReceitas) ? dadosReceitas : []
+  }, [receitasGlobais])
+
   const alternarFiltro = (id) => {
     setFiltrosAtivos((atuais) =>
       atuais.includes(id) ? atuais.filter((item) => item !== id) : [...atuais, id]
     )
   }
 
-  // Alterna receitas favoritadas
-  const alternarFavorito = (id) => {
-    setFavoritos((atuais) =>
-      atuais.includes(id) ? atuais.filter((favId) => favId !== id) : [...atuais, id]
-    )
+  // Score ponderado: Nota de Avaliação (70%) + Volume de Salvos (30%)
+  const calcularScore = (receita) => {
+    if (!receita) return 0
+    const nota = Number(receita.rating || receita.nota || 4.5)
+    const salvos = Number(receita.savesCount || receita.salvos || 0)
+    const notaValida = isNaN(nota) ? 0 : nota
+    const salvosValidos = isNaN(salvos) ? 0 : salvos
+    return notaValida * 0.7 + Math.min(salvosValidos, 30) * 0.1
   }
 
-  // Filtragem combinando busca de texto e regras de alérgenos/tags
-  const listaFiltrada = (dadosReceitas || []).filter((receita) => {
-    const nome = receita.nome || receita.title || ''
-    const atendeBusca = nome.toLowerCase().includes(busca.toLowerCase())
+  const listaProcessada = useMemo(() => {
+    if (!Array.isArray(baseReceitas)) return []
 
-    const regrasAtivas = FILTROS.filter((f) => filtrosAtivos.includes(f.id))
-    const atendeFiltros = regrasAtivas.every((filtro) => {
-      if (filtro.tipo === 'evitar') {
-        const alergenos = receita.ingredientes?.flatMap((i) => i.alergenos || []) || []
-        return !alergenos.includes(filtro.valor)
-      }
-      const tags = receita.tags || []
-      return tags.includes(filtro.valor)
+    const filtradas = baseReceitas.filter((receita) => {
+      if (!receita) return false
+      const nome = receita.nome || receita.title || ''
+      const atendeBusca = nome.toLowerCase().includes((busca || '').toLowerCase())
+
+      const regrasAtivas = FILTROS.filter((f) => filtrosAtivos.includes(f.id))
+      const atendeFiltros = regrasAtivas.every((filtro) => {
+        if (filtro.tipo === 'evitar') {
+          let listaAlergenos = []
+          if (Array.isArray(receita.ingredientes)) {
+            listaAlergenos = receita.ingredientes.flatMap((i) =>
+              typeof i === 'object' && i !== null && Array.isArray(i.alergenos)
+                ? i.alergenos
+                : []
+            )
+          }
+          return !listaAlergenos.includes(filtro.valor)
+        }
+        const tags = Array.isArray(receita.tags) ? receita.tags : []
+        return tags.includes(filtro.valor)
+      })
+
+      return atendeBusca && atendeFiltros
     })
 
-    return atendeBusca && atendeFiltros
-  })
+    const ordenadas = [...filtradas].sort((a, b) => calcularScore(b) - calcularScore(a))
+
+    if (!busca && filtrosAtivos.length === 0) {
+      return ordenadas.slice(0, 6)
+    }
+
+    return ordenadas
+  }, [baseReceitas, busca, filtrosAtivos])
 
   return (
     <main className="container py-4">
-      {/* HERO SECTION */}
+      {/* HERO SECTION ORIGINAL (SEM IMAGEM DE ARROZ) */}
       <section className="p-4 p-md-5 mb-5 rounded-4" style={{ backgroundColor: '#e8f0e6' }}>
         <div className="row align-items-center g-4">
           <div className="col-12 col-md-7">
@@ -116,9 +147,7 @@ export default function Home() {
                   type="button"
                   onClick={() => alternarFiltro(filtro.id)}
                   className={`btn w-100 p-3 rounded-4 d-flex flex-column align-items-center justify-content-center shadow-sm border transition-all ${
-                    estaAtivo
-                      ? 'text-white'
-                      : 'bg-white text-dark'
+                    estaAtivo ? 'text-white' : 'bg-white text-dark'
                   }`}
                   style={{
                     backgroundColor: estaAtivo ? '#1b4332' : '#ffffff',
@@ -173,35 +202,50 @@ export default function Home() {
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div>
             <h5 className="fw-bold text-dark mb-0">Receitas em destaque</h5>
-            <small className="text-secondary">{listaFiltrada.length} resultado(s)</small>
+            <small className="text-secondary">
+              {!busca && filtrosAtivos.length === 0
+                ? 'Top 6 receitas mais bem avaliadas e populares'
+                : `${listaProcessada.length} resultado(s) ordenados por pontuação`}
+            </small>
           </div>
-          <a href="/receitas" className="small fw-bold text-decoration-none" style={{ color: '#1b4332' }}>
+          <Link to="/receitas" className="small fw-bold text-decoration-none" style={{ color: '#1b4332' }}>
             Ver todas <i className="bi bi-arrow-right ms-1"></i>
-          </a>
+          </Link>
         </div>
 
-        {listaFiltrada.length === 0 ? (
+        {listaProcessada.length === 0 ? (
           <div className="alert alert-light border text-center py-5 text-secondary rounded-4">
             Nenhuma receita encontrada com os filtros selecionados.
           </div>
         ) : (
           <div className="row g-4">
-            {listaFiltrada.map((receita) => {
-              const id = receita.id || receita.title || receita.nome
+            {listaProcessada.map((receita) => {
+              const id = String(receita.id || receita.title || receita.nome)
               const nome = receita.nome || receita.title
               const tempo = receita.tempo || receita.time || '20 min'
-              const nota = receita.nota || receita.rating || '4.8'
+              const nota = Number(receita.nota || receita.rating || 4.8).toFixed(1)
               const imagem = receita.imagem || receita.image || '/img/panqueca.jpg'
-              const isFav = favoritos.includes(id)
-              const alergenos = [...new Set(receita.ingredientes?.flatMap((i) => i.alergenos || []) || [])]
+              const isFav = savedRecipeIds ? savedRecipeIds.includes(id) : false
+
+              const alergenos = Array.isArray(receita.ingredientes)
+                ? [
+                    ...new Set(
+                      receita.ingredientes.flatMap((i) =>
+                        typeof i === 'object' && i !== null && Array.isArray(i.alergenos)
+                          ? i.alergenos
+                          : []
+                      )
+                    ),
+                  ]
+                : []
 
               return (
                 <div className="col-12 col-md-6 col-lg-4" key={id}>
                   <div className="card h-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative">
-                    {/* Botão de Favoritar */}
                     <button
                       type="button"
-                      onClick={() => alternarFavorito(id)}
+                      onClick={() => toggleSaveRecipe(id)}
+                      title={isFav ? 'Remover dos salvos' : 'Salvar receita'}
                       className="btn btn-light btn-sm rounded-circle position-absolute top-0 end-0 m-3 shadow-sm d-flex align-items-center justify-content-center"
                       style={{ width: 36, height: 36, zIndex: 2 }}
                     >
@@ -230,10 +274,14 @@ export default function Home() {
                             <i className="bi bi-star-fill me-1"></i>
                             {nota}
                           </span>
+                          {receita.savesCount !== undefined && (
+                            <span className="text-muted" style={{ fontSize: '0.75rem' }}>
+                              ({receita.savesCount} salvos)
+                            </span>
+                          )}
                         </div>
                       </div>
 
-                      {/* Selos de Alérgenos */}
                       <div className="d-flex flex-wrap gap-1">
                         {alergenos.length === 0 ? (
                           <span className="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
