@@ -52,7 +52,7 @@ export default function Login() {
     try {
       entrar(form)
       setErro('')
-      navigate('/catalogo')
+      navigate('/')
     } catch (err) {
       setSucesso('')
       setErro(err.message)
