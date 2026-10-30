@@ -52,7 +52,7 @@ export default function Login() {
     try {
       entrar(form)
       setErro('')
-      navigate('/catalogo')
+      navigate('/') // Retorna para a página principal após logar com sucesso
     } catch (err) {
       setSucesso('')
       setErro(err.message)
@@ -60,16 +60,29 @@ export default function Login() {
   }
 
   return (
-    <div className="nf-auth d-flex align-items-center justify-content-center p-3">
-      <form onSubmit={enviar} className="nf-card p-4 p-md-5" style={{ maxWidth: 420, width: '100%' }}>
+    <div className="nf-auth d-flex align-items-center justify-content-center p-3 my-5">
+      <form onSubmit={enviar} className="nf-card card p-4 p-md-5 shadow-sm border-0" style={{ maxWidth: 420, width: '100%' }}>
         <div className="text-center mb-4">
-          <h2 className="fw-bold text-primary"><i className="bi bi-flower2 me-2"></i>{modoRecuperacao ? 'Redefinir senha' : 'NutriFlow'}</h2>
-          <p className="text-secondary small mb-0">{modoRecuperacao ? 'Informe seu e-mail e escolha uma nova senha' : 'Entre e descubra o que há em seus alimentos'}</p>
+          <h2 className="fw-bold text-primary">
+            <i className="bi bi-flower2 me-2"></i>{modoRecuperacao ? 'Redefinir senha' : 'NutriFlow'}
+          </h2>
+          <p className="text-secondary small mb-0">
+            {modoRecuperacao ? 'Informe seu e-mail e escolha uma nova senha' : 'Entre e descubra o que há em seus alimentos'}
+          </p>
         </div>
 
         <div className="mb-3">
           <label className="form-label small fw-semibold">E-mail</label>
-          <input name="email" type="email" pattern="[^\s@]+@[^\s@.]+(\.[^\s@.]+)+" title="Use um e-mail com domínio, como nome@exemplo.com." className="form-control form-control-lg" value={form.email} onChange={mudar} required />
+          <input
+            name="email"
+            type="email"
+            pattern="[^\s@]+@[^\s@.]+(\.[^\s@.]+)+"
+            title="Use um e-mail com domínio, como nome@exemplo.com."
+            className="form-control form-control-lg fs-6"
+            value={form.email}
+            onChange={mudar}
+            required
+          />
         </div>
 
         {modoRecuperacao ? (
@@ -79,11 +92,27 @@ export default function Login() {
             </div>
             <div className="mb-3">
               <label htmlFor="nova-senha" className="form-label small fw-semibold">Nova senha</label>
-              <input id="nova-senha" type="password" className="form-control form-control-lg" value={senhaNova} onChange={(e) => setSenhaNova(e.target.value)} minLength={6} required />
+              <input
+                id="nova-senha"
+                type="password"
+                className="form-control form-control-lg fs-6"
+                value={senhaNova}
+                onChange={(e) => setSenhaNova(e.target.value)}
+                minLength={6}
+                required
+              />
             </div>
             <div className="mb-3">
               <label htmlFor="confirmar-senha" className="form-label small fw-semibold">Confirme a nova senha</label>
-              <input id="confirmar-senha" type="password" className="form-control form-control-lg" value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)} minLength={6} required />
+              <input
+                id="confirmar-senha"
+                type="password"
+                className="form-control form-control-lg fs-6"
+                value={confirmarSenha}
+                onChange={(e) => setConfirmarSenha(e.target.value)}
+                minLength={6}
+                required
+              />
             </div>
           </>
         ) : (
@@ -91,14 +120,31 @@ export default function Login() {
             <div className="mb-3">
               <label htmlFor="login-senha" className="form-label small fw-semibold">Senha</label>
               <div className="input-group">
-                <input id="login-senha" name="senha" type={mostrarSenha ? 'text' : 'password'} className="form-control form-control-lg" value={form.senha} onChange={mudar} required />
-                <button type="button" className="btn btn-outline-secondary" onClick={() => setMostrarSenha(!mostrarSenha)} aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'} aria-pressed={mostrarSenha}>
-                  <i className={`bi ${mostrarSenha ? 'bi-eye-slash' : 'bi-eye'}`} aria-hidden="true"></i>
+                <input
+                  id="login-senha"
+                  name="senha"
+                  type={mostrarSenha ? 'text' : 'password'}
+                  className="form-control form-control-lg fs-6"
+                  value={form.senha}
+                  onChange={mudar}
+                  required
+                />
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary"
+                  onClick={() => setMostrarSenha(!mostrarSenha)}
+                  aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
+                >
+                  <i className={`bi ${mostrarSenha ? 'bi-eye-slash' : 'bi-eye'}`}></i>
                 </button>
               </div>
             </div>
             <div className="text-end mb-3">
-              <button type="button" className="btn btn-link btn-sm p-0" onClick={() => { setModoRecuperacao(true); setErro(''); setSucesso('') }}>
+              <button
+                type="button"
+                className="btn btn-link btn-sm p-0 text-decoration-none"
+                onClick={() => { setModoRecuperacao(true); setErro(''); setSucesso('') }}
+              >
                 Esqueceu a senha?
               </button>
             </div>
@@ -108,16 +154,33 @@ export default function Login() {
         {erro && <div className="alert alert-danger py-2 small" role="alert">{erro}</div>}
         {sucesso && <div className="alert alert-success py-2 small" role="status">{sucesso}</div>}
 
-        <button type="submit" className="btn btn-primary btn-lg w-100 mt-2">{modoRecuperacao ? 'Redefinir senha' : 'Entrar'}</button>
+        <button type="submit" className="btn btn-primary btn-lg w-100 mt-2 fs-6 fw-bold">
+          {modoRecuperacao ? 'Redefinir senha' : 'Entrar'}
+        </button>
+
         {modoRecuperacao ? (
           <p className="text-center small mt-3 mb-0">
-            <button type="button" className="btn btn-link btn-sm p-0" onClick={() => { setModoRecuperacao(false); setErro(''); setSucesso('') }}>
+            <button
+              type="button"
+              className="btn btn-link btn-sm p-0 text-decoration-none"
+              onClick={() => { setModoRecuperacao(false); setErro(''); setSucesso('') }}
+            >
               Voltar para entrar
             </button>
           </p>
         ) : (
-          <p className="text-center small mt-3 mb-0">Não tem conta? <Link to="/cadastro">Cadastre-se</Link></p>
+          <p className="text-center small mt-3 mb-0">
+            Não tem conta? <Link to="/cadastro" className="text-decoration-none fw-semibold">Cadastre-se</Link>
+          </p>
         )}
+
+        <hr className="my-3 text-muted" />
+
+        <div className="text-center">
+          <Link to="/" className="text-secondary small text-decoration-none">
+            <i className="bi bi-arrow-left me-1"></i> Continuar navegando sem entrar
+          </Link>
+        </div>
       </form>
     </div>
   )
