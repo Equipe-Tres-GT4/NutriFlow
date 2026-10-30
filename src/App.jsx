@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import {
   BrowserRouter,
   Routes,
@@ -8,19 +8,19 @@ import {
   useInRouterContext,
 } from 'react-router-dom'
 import { RecipeProvider, useRecipes } from './context/RecipeContext'
+import { useAuth } from './auth/AuthContext'
+import RotaProtegida from './auth/RotaProtegida'
 
 import Home from './pages/Home'
 import Receitas from './pages/Receitas'
 import Salvos from './pages/Salvos'
+import Login from './pages/Login'
+import Cadastro from './pages/Cadastro'
+import Visualizacao from './pages/Visualizacao'
 
 // Previne a exceção fatal de múltiplos <BrowserRouter> encadeados
 function RoteadorSeguro({ children }) {
-  let dentroDoRouter = false
-  try {
-    dentroDoRouter = useInRouterContext()
-  } catch (e) {
-    dentroDoRouter = false
-  }
+  const dentroDoRouter = useInRouterContext()
 
   if (dentroDoRouter) {
     return <>{children}</>
@@ -30,14 +30,10 @@ function RoteadorSeguro({ children }) {
 
 function Navbar() {
   const { savedRecipeIds, currentUser } = useRecipes()
+  const { usuario, sair } = useAuth()
   const totalSalvos = savedRecipeIds ? savedRecipeIds.length : 0
   const [menuPerfilAberto, setMenuPerfilAberto] = useState(false)
-  const [estaLogado, setEstaLogado] = useState(true)
-
-  const alternarLogin = () => {
-    setEstaLogado(!estaLogado)
-    setMenuPerfilAberto(false)
-  }
+  const estaLogado = Boolean(usuario)
 
   return (
     <header className="bg-white border-bottom sticky-top py-2">
@@ -164,7 +160,7 @@ function Navbar() {
                       </div>
                       <div className="overflow-hidden">
                         <span className="d-block small fw-bold text-dark text-truncate">
-                          {currentUser?.name || 'Usuário NutriFlow'}
+                          {usuario?.nome || currentUser?.name || 'Usuário NutriFlow'}
                         </span>
                         <span className="d-block text-success small" style={{ fontSize: '0.72rem' }}>
                           <i className="bi bi-check-circle-fill me-1"></i>Conectado
@@ -183,7 +179,10 @@ function Navbar() {
 
                     <button
                       type="button"
-                      onClick={alternarLogin}
+                      onClick={() => {
+                        sair()
+                        setMenuPerfilAberto(false)
+                      }}
                       className="btn btn-outline-danger btn-sm w-100 rounded-3 d-flex align-items-center justify-content-center gap-2"
                     >
                       <i className="bi bi-box-arrow-right"></i>
@@ -197,15 +196,22 @@ function Navbar() {
                       <p className="small text-muted mb-0 mt-1">Você está desconectado</p>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={alternarLogin}
+                    <Link
+                      to="/login"
+                      onClick={() => setMenuPerfilAberto(false)}
                       className="btn text-white btn-sm w-100 rounded-3 fw-semibold shadow-sm"
                       style={{ backgroundColor: '#1b4332' }}
                     >
                       <i className="bi bi-box-arrow-in-right me-1"></i>
                       Entrar (Login)
-                    </button>
+                    </Link>
+                    <Link
+                      to="/cadastro"
+                      onClick={() => setMenuPerfilAberto(false)}
+                      className="btn btn-light btn-sm w-100 rounded-3 fw-semibold mt-2"
+                    >
+                      Criar conta
+                    </Link>
                   </>
                 )}
               </div>
@@ -466,6 +472,8 @@ function Alimentos() {
 }
 
 export default function App() {
+  const { usuario } = useAuth()
+
   return (
     <RecipeProvider>
       <RoteadorSeguro>
@@ -474,10 +482,12 @@ export default function App() {
 
           <div className="flex-grow-1">
             <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/alimentos" element={<Alimentos />} />
-              <Route path="/receitas" element={<Receitas />} />
-              <Route path="/salvos" element={<Salvos />} />
+              <Route path="/" element={usuario ? <Home /> : <Visualizacao />} />
+              <Route path="/alimentos" element={<RotaProtegida><Alimentos /></RotaProtegida>} />
+              <Route path="/receitas" element={<RotaProtegida><Receitas /></RotaProtegida>} />
+              <Route path="/salvos" element={<RotaProtegida><Salvos /></RotaProtegida>} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/cadastro" element={<Cadastro />} />
             </Routes>
           </div>
 

@@ -5,7 +5,7 @@ import { useAuth } from '../auth/AuthContext'
 export default function Cadastro() {
   const { cadastrar } = useAuth()
   const navigate = useNavigate()
-  const [form, setForm] = useState({ nome: '', email: '', senha: '' })
+  const [form, setForm] = useState({ nome: '', email: '', senha: '', confirmarSenha: '' })
   const [mostrarSenha, setMostrarSenha] = useState(false)
   const [erro, setErro] = useState('')
 
@@ -14,8 +14,9 @@ export default function Cadastro() {
   function enviar(e) {
     e.preventDefault()
     if (form.senha.length < 6) return setErro('A senha precisa ter pelo menos 6 caracteres.')
+    if (form.senha !== form.confirmarSenha) return setErro('As senhas não coincidem.')
     try {
-      cadastrar(form)
+      cadastrar({ nome: form.nome, email: form.email, senha: form.senha })
       navigate('/login')
     } catch (err) {
       setErro(err.message)
@@ -77,6 +78,19 @@ export default function Cadastro() {
               <i className={`bi ${mostrarSenha ? 'bi-eye-slash' : 'bi-eye'}`}></i>
             </button>
           </div>
+        </div>
+        <div className="mb-3">
+          <label htmlFor="cadastro-confirmar-senha" className="form-label small fw-semibold">Confirme a senha</label>
+          <input
+            id="cadastro-confirmar-senha"
+            name="confirmarSenha"
+            type="password"
+            className="form-control form-control-lg fs-6"
+            value={form.confirmarSenha}
+            onChange={mudar}
+            minLength={6}
+            required
+          />
         </div>
 
         {erro && <p className="alert alert-danger py-2 small mb-3" role="alert">{erro}</p>}

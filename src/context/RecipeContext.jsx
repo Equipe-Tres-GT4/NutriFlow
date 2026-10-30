@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 import { receitas as dadosReceitas } from '../data/receitas'
+import { useAuth } from '../auth/AuthContext'
 
 const RecipeContext = createContext(null)
 
@@ -19,30 +20,15 @@ const carregarReceitasIniciais = () => {
   return Array.isArray(dadosReceitas) ? dadosReceitas : []
 }
 
-const carregarSalvosIniciais = () => {
-  try {
-    const guardados = localStorage.getItem('nutriflow_saved_ids')
-    if (guardados && guardados !== 'undefined' && guardados !== 'null') {
-      const parsed = JSON.parse(guardados)
-      if (Array.isArray(parsed)) {
-        return parsed
-      }
-    }
-  } catch (erro) {
-    console.error('Erro ao ler salvos do localStorage:', erro)
-  }
-  return []
-}
-
 export function RecipeProvider({ children }) {
+  const { usuario, alternarSalvarReceita } = useAuth()
   const [recipes, setRecipes] = useState(carregarReceitasIniciais)
-  const [savedRecipeIds, setSavedRecipeIds] = useState(carregarSalvosIniciais)
-
-  const [currentUser] = useState({
-    id: 'usr_1',
-    name: 'Utilizador NutriFlow',
-    isAuthenticated: true,
-  })
+  const savedRecipeIds = usuario?.receitasSalvas?.map(
+    (recipe) => String(recipe.id || recipe.title || recipe.nome)
+  ) || []
+  const currentUser = usuario
+    ? { id: usuario.id, name: usuario.nome, isAuthenticated: true }
+    : { id: null, name: '', isAuthenticated: false }
 
   useEffect(() => {
     try {
@@ -51,14 +37,6 @@ export function RecipeProvider({ children }) {
       console.error(e)
     }
   }, [recipes])
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('nutriflow_saved_ids', JSON.stringify(savedRecipeIds))
-    } catch (e) {
-      console.error(e)
-    }
-  }, [savedRecipeIds])
 
   // Cálculo ponderado do Score: Nota (70%) + Popularidade de Salvos (30%)
   const calculateScore = (recipe) => {
@@ -78,33 +56,36 @@ export function RecipeProvider({ children }) {
 
   // Alternar gravação/remoção de receitas salvas
   const toggleSaveRecipe = (recipeId) => {
+    if (!usuario) return false
+
     const idStr = String(recipeId)
-    setSavedRecipeIds((anteriores) => {
-      const jaExiste = anteriores.includes(idStr)
-      const atualizados = jaExiste
-        ? anteriores.filter((id) => id !== idStr)
-        : [...anteriores, idStr]
+    const receita = recipes.find(
+      (item) => String(item.id || item.title || item.nome) === idStr
+    )
+    if (!receita) return false
 
-      setRecipes((atuais) =>
-        atuais.map((item) => {
-          const itemId = String(item.id || item.title || item.nome)
-          if (itemId === idStr) {
-            const contagemAtual = Number(item.savesCount || item.salvos || 0)
-            return {
-              ...item,
-              savesCount: jaExiste ? Math.max(0, contagemAtual - 1) : contagemAtual + 1,
-            }
+    const jaExiste = savedRecipeIds.includes(idStr)
+    alternarSalvarReceita(receita)
+    setRecipes((atuais) =>
+      atuais.map((item) => {
+        const itemId = String(item.id || item.title || item.nome)
+        if (itemId === idStr) {
+          const contagemAtual = Number(item.savesCount || item.salvos || 0)
+          return {
+            ...item,
+            savesCount: jaExiste ? Math.max(0, contagemAtual - 1) : contagemAtual + 1,
           }
-          return item
-        })
-      )
-
-      return atualizados
-    })
+        }
+        return item
+      })
+    )
+    return true
   }
 
   // Avaliação de 1 a 5 estrelas
   const rateRecipe = (recipeId, starRating) => {
+    if (!usuario) return false
+
     const idStr = String(recipeId)
     const estrelas = Number(starRating)
     if (estrelas < 1 || estrelas > 5) return
@@ -131,6 +112,8 @@ export function RecipeProvider({ children }) {
 
   // Adição de nova receita à comunidade
   const addRecipe = (novaReceita) => {
+    if (!usuario) return false
+
     const receitaCriada = {
       ...novaReceita,
       id: String(Date.now()),
@@ -149,6 +132,8 @@ export function RecipeProvider({ children }) {
 
   // Clonagem de receita existente
   const cloneRecipe = (recipeId) => {
+    if (!usuario) return null
+
     const idStr = String(recipeId)
     const encontrada = recipes.find(
       (r) => String(r.id || r.title || r.nome) === idStr
@@ -187,6 +172,7 @@ export function RecipeProvider({ children }) {
 }
 
 // Fallback para assegurar que chamadas ao hook nunca devolvam undefined
+// eslint-disable-next-line react-refresh/only-export-components
 export const useRecipes = () => {
   const contexto = useContext(RecipeContext)
   if (!contexto) {
@@ -198,7 +184,7 @@ export const useRecipes = () => {
       rateRecipe: () => {},
       addRecipe: () => false,
       cloneRecipe: () => null,
-      currentUser: { id: 'usr_1', name: 'Utilizador', isAuthenticated: true },
+      currentUser: { id: null, name: '', isAuthenticated: false },
     }
   }
   return contexto
