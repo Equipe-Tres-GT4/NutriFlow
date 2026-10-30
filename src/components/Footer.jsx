@@ -1,6 +1,6 @@
-import { LuLeaf, LuInstagram, LuFacebook, LuYoutube } from "react-icons/lu";
-
-import "./Footer.css";
+import React from 'react'
+import { Link } from 'react-router-dom'
+import './Footer.css'
 
 export default function Footer() {
   return (
@@ -8,7 +8,7 @@ export default function Footer() {
       <div className="footer-inner">
         {/* Logo e descrição */}
         <div className="footer-brand">
-          <LuLeaf className="footer-leaf" />
+          <i className="bi bi-sprout footer-leaf"></i>
           <div>
             <h3>NutriFlow</h3>
             <p className="footer-description">
@@ -24,9 +24,9 @@ export default function Footer() {
           <div>
             <h5>Links rápidos</h5>
             <ul className="footer-links">
-              <li><a href="#inicio">Início</a></li>
-              <li><a href="#categorias">Pesquisar alimentos</a></li>
-              <li><a href="#receitas">Receitas</a></li>
+              <li><Link to="/">Início</Link></li>
+              <li><Link to="/alimentos">Pesquisar alimentos</Link></li>
+              <li><Link to="/receitas">Receitas</Link></li>
             </ul>
           </div>
 
@@ -53,7 +53,7 @@ export default function Footer() {
               target="_blank"
               rel="noreferrer"
             >
-              <LuInstagram />
+              <i className="bi bi-instagram"></i>
             </a>
             <a
               href="https://www.facebook.com/"
@@ -61,7 +61,7 @@ export default function Footer() {
               target="_blank"
               rel="noreferrer"
             >
-              <LuFacebook />
+              <i className="bi bi-facebook"></i>
             </a>
             <a
               href="https://www.youtube.com/"
@@ -69,11 +69,11 @@ export default function Footer() {
               target="_blank"
               rel="noreferrer"
             >
-              <LuYoutube />
+              <i className="bi bi-youtube"></i>
             </a>
           </div>
         </div>
       </div>
     </footer>
-  );
+  )
 }
