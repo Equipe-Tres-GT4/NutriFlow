@@ -3,6 +3,7 @@ import { createContext, useContext, useState } from 'react'
 const AuthContext = createContext(null)
 
 const lerUsuarios = () => JSON.parse(localStorage.getItem('usuarios') || '[]')
+const emailValido = (email) => /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/.test(email)
 
 export function AuthProvider({ children }) {
   const [usuario, setUsuario] = useState(() =>
@@ -10,6 +11,11 @@ export function AuthProvider({ children }) {
   )
 
   function cadastrar({ nome, email, senha }) {
+    email = email.trim().toLowerCase()
+    if (!emailValido(email)) {
+      throw new Error('Digite um e-mail válido, como nome@exemplo.com.')
+    }
+
     const usuarios = lerUsuarios()
     if (usuarios.some((u) => u.email === email)) {
       throw new Error('Este e-mail já está cadastrado.')
@@ -18,6 +24,11 @@ export function AuthProvider({ children }) {
   }
 
   function entrar({ email, senha }) {
+    email = email.trim().toLowerCase()
+    if (!emailValido(email)) {
+      throw new Error('Digite um e-mail válido, como nome@exemplo.com.')
+    }
+
     const encontrado = lerUsuarios().find((u) => u.email === email && u.senha === senha)
     if (!encontrado) throw new Error('E-mail ou senha incorretos.')
     const sessao = { nome: encontrado.nome, email: encontrado.email } // nunca guarde a senha na sessão

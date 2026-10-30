@@ -12,7 +12,10 @@
   "dependencies": {
     "bootstrap": "^5.3.8",
     "bootstrap-icons": "^1.13.2",
+<<<<<<< HEAD
     "lucide-react": "^1.62.0",
+=======
+>>>>>>> 642446ff7e865f9e6fecae4446a9958b9e91cced
     "react": "^19.3.1",
     "react-bootstrap": "^2.10.10",
     "react-dom": "^19.3.1",
