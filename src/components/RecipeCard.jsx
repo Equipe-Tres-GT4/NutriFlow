@@ -1,5 +1,3 @@
-import React from 'react';
-
 export function RecipeCard({ receita }) {
   const { id, titulo, autor, tempoPreparo, dificuldade, imagem, etiquetas } = receita;
 
