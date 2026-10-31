@@ -8,6 +8,7 @@ import {
   useInRouterContext,
 } from 'react-router-dom'
 import { RecipeProvider, useRecipes } from './context/RecipeContext'
+import DetalhesReceita from './pages/DetalhesReceita';
 
 import Home from './pages/Home'
 import Receitas from './pages/Receitas'
@@ -477,6 +478,7 @@ export default function App() {
               <Route path="/" element={<Home />} />
               <Route path="/alimentos" element={<Alimentos />} />
               <Route path="/receitas" element={<Receitas />} />
+              <Route path="/receita/panqueca-de-banana" element={<DetalhesReceita />} />
               <Route path="/salvos" element={<Salvos />} />
             </Routes>
           </div>
