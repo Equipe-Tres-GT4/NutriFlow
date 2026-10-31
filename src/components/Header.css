@@ -28,11 +28,15 @@
 }
 
 .logo-icon {
-  display: block;
-  width: 105px;
-  height: 38px;
-  object-fit: contain;
-  object-position: left center;
+  color: var(--nf-verde-escuro);
+  font-size: 24px;
+}
+
+.logo-text {
+  color: var(--nf-verde-escuro);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .area-navegacao {
@@ -109,22 +113,31 @@
   animation: aparecerMenu 0.15s ease-out;
 }
 
-.menu-perfil a {
+.menu-perfil a,
+.menu-perfil .acao-sair-perfil {
   display: flex;
   align-items: center;
   min-height: 43px;
   padding: 10px 8px;
+  border: 0;
   color: #303a33;
   font-size: 13px;
   text-decoration: none;
   white-space: nowrap;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
 }
 
-.menu-perfil a + a {
+.menu-perfil a + a,
+.menu-perfil a + .acao-sair-perfil,
+.menu-perfil .acao-sair-perfil {
   border-top: 1px solid #e8ece9;
 }
 
-.menu-perfil a:hover {
+.menu-perfil a:hover,
+.menu-perfil .acao-sair-perfil:hover {
   color: #26734f;
   background-color: #f3f7f3;
   border-radius: 5px;
@@ -154,9 +167,9 @@
     padding: 0 16px;
   }
 
-  .logo-icon {
-    width: 100px;
-    height: 36px;
+  .logo-icon,
+  .logo-text {
+    font-size: 22px;
   }
 
   .botao-menu-mobile {
