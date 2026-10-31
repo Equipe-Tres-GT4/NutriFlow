@@ -46,7 +46,8 @@ export default function App() {
               <Route path="/" element={<Home />} />
               <Route path="/alimentos" element={<Alimentos />} />
               <Route path="/receitas" element={<Receitas />} />
-              <Route path="/receita/panqueca-de-banana" element={<DetalhesReceita />} />
+              {/* Rota dinâmica para aceitar o ID de qualquer receita clicada */}
+              <Route path="/receita/:id" element={<DetalhesReceita />} />
               <Route path="/salvos" element={<Salvos />} />
               <Route path="/login" element={<Login />} />
               <Route path="/cadastro" element={<Cadastro />} />

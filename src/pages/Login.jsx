@@ -3,7 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 
 export default function Login() {
-  const { entrar } = useAuth();
+  const auth = useAuth() || {};
+  // Garante compatibilidade caso o método no AuthContext se chame 'entrar', 'login' ou 'logar'
+  const entrar = auth.entrar || auth.login || auth.logar || (() => { throw new Error("Função de login não encontrada no AuthContext"); });
+  
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', senha: '' });
   const [mostrarSenha, setMostrarSenha] = useState(false);
@@ -55,7 +58,7 @@ export default function Login() {
       navigate('/'); // Retorna para a página principal após logar com sucesso
     } catch (err) {
       setSucesso('');
-      setErro(err.message);
+      setErro(err?.message || 'Ocorreu um erro ao entrar.');
     }
   }
 
@@ -76,8 +79,6 @@ export default function Login() {
           <input
             name="email"
             type="email"
-            pattern="[^\s@]+@[^\s@.]+(\.[^\s@.]+)+"
-            title="Use um e-mail com domínio, como nome@exemplo.com."
             className="form-control form-control-lg fs-6"
             value={form.email}
             onChange={mudar}
@@ -133,4 +134,55 @@ export default function Login() {
                   type="button"
                   className="btn btn-outline-secondary"
                   onClick={() => setMostrarSenha(!mostrarSenha)}
-                  aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar
+                  aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
+                >
+                  <i className={`bi ${mostrarSenha ? 'bi-eye-slash' : 'bi-eye'}`}></i>
+                </button>
+              </div>
+            </div>
+            <div className="text-end mb-3">
+              <button
+                type="button"
+                className="btn btn-link btn-sm p-0 text-decoration-none"
+                onClick={() => { setModoRecuperacao(true); setErro(''); setSucesso(''); }}
+              >
+                Esqueceu a senha?
+              </button>
+            </div>
+          </>
+        )}
+
+        {erro && <div className="alert alert-danger py-2 small" role="alert">{erro}</div>}
+        {sucesso && <div className="alert alert-success py-2 small" role="status">{sucesso}</div>}
+
+        <button type="submit" className="btn btn-primary btn-lg w-100 mt-2 fs-6 fw-bold">
+          {modoRecuperacao ? 'Redefinir senha' : 'Entrar'}
+        </button>
+
+        {modoRecuperacao ? (
+          <p className="text-center small mt-3 mb-0">
+            <button
+              type="button"
+              className="btn btn-link btn-sm p-0 text-decoration-none"
+              onClick={() => { setModoRecuperacao(false); setErro(''); setSucesso(''); }}
+            >
+              Voltar para entrar
+            </button>
+          </p>
+        ) : (
+          <p className="text-center small mt-3 mb-0">
+            Não tem conta? <Link to="/cadastro" className="text-decoration-none fw-semibold">Cadastre-se</Link>
+          </p>
+        )}
+
+        <hr className="my-3 text-muted" />
+
+        <div className="text-center">
+          <Link to="/" className="text-secondary small text-decoration-none">
+            <i className="bi bi-arrow-left me-1"></i> Continuar navegando sem entrar
+          </Link>
+        </div>
+      </form>
+    </div>
+  );
+}
