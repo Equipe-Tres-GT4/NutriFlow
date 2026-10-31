@@ -87,7 +87,7 @@ export default function Home() {
 
   return (
     <main className="container py-4">
-      {/* HERO SECTION ORIGINAL (SEM IMAGEM DE ARROZ) */}
+      {/* HERO SECTION ORIGINAL */}
       <section className="p-4 p-md-5 mb-5 rounded-4" style={{ backgroundColor: '#e8f0e6' }}>
         <div className="row align-items-center g-4">
           <div className="col-12 col-md-7">
@@ -242,9 +242,14 @@ export default function Home() {
               return (
                 <div className="col-12 col-md-6 col-lg-4" key={id}>
                   <div className="card h-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative">
+                    {/* Botão de favoritar flutuante (fora do link para não conflitar com a navegação) */}
                     <button
                       type="button"
-                      onClick={() => toggleSaveRecipe(id)}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        toggleSaveRecipe(id)
+                      }}
                       title={isFav ? 'Remover dos salvos' : 'Salvar receita'}
                       className="btn btn-light btn-sm rounded-circle position-absolute top-0 end-0 m-3 shadow-sm d-flex align-items-center justify-content-center"
                       style={{ width: 36, height: 36, zIndex: 2 }}
@@ -252,53 +257,56 @@ export default function Home() {
                       <i className={`bi ${isFav ? 'bi-heart-fill text-danger' : 'bi-heart text-secondary'}`}></i>
                     </button>
 
-                    <img
-                      src={imagem}
-                      alt={nome}
-                      className="w-100"
-                      style={{ height: 180, objectFit: 'cover' }}
-                      onError={(e) => {
-                        e.target.src = 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=500&auto=format&fit=crop&q=60'
-                      }}
-                    />
+                    {/* ENVOLVENDO O CONTEÚDO DO CARD COM O LINK PARA A PÁGINA DE DETALHES */}
+                    <Link to={`/receita/${id}`} className="text-decoration-none text-dark h-100 d-flex flex-column">
+                      <img
+                        src={imagem}
+                        alt={nome}
+                        className="w-100"
+                        style={{ height: 180, objectFit: 'cover' }}
+                        onError={(e) => {
+                          e.target.src = 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=500&auto=format&fit=crop&q=60'
+                        }}
+                      />
 
-                    <div className="card-body d-flex flex-column justify-content-between p-3">
-                      <div>
-                        <h6 className="card-title fw-bold text-dark text-truncate mb-2">{nome}</h6>
-                        <div className="d-flex align-items-center gap-3 text-secondary small mb-3">
-                          <span>
-                            <i className="bi bi-clock me-1"></i>
-                            {tempo}
-                          </span>
-                          <span className="text-warning fw-semibold">
-                            <i className="bi bi-star-fill me-1"></i>
-                            {nota}
-                          </span>
-                          {receita.savesCount !== undefined && (
-                            <span className="text-muted" style={{ fontSize: '0.75rem' }}>
-                              ({receita.savesCount} salvos)
+                      <div className="card-body d-flex flex-column justify-content-between p-3 flex-grow-1">
+                        <div>
+                          <h6 className="card-title fw-bold text-dark text-truncate mb-2">{nome}</h6>
+                          <div className="d-flex align-items-center gap-3 text-secondary small mb-3">
+                            <span>
+                              <i className="bi bi-clock me-1"></i>
+                              {tempo}
                             </span>
+                            <span className="text-warning fw-semibold">
+                              <i className="bi bi-star-fill me-1"></i>
+                              {nota}
+                            </span>
+                            {receita.savesCount !== undefined && (
+                              <span className="text-muted" style={{ fontSize: '0.75rem' }}>
+                                ({receita.savesCount} salvos)
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="d-flex flex-wrap gap-1">
+                          {alergenos.length === 0 ? (
+                            <span className="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
+                              Sem alérgenos
+                            </span>
+                          ) : (
+                            alergenos.map((alerg) => (
+                              <span
+                                key={alerg}
+                                className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill"
+                              >
+                                Contém {alerg}
+                              </span>
+                            ))
                           )}
                         </div>
                       </div>
-
-                      <div className="d-flex flex-wrap gap-1">
-                        {alergenos.length === 0 ? (
-                          <span className="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
-                            Sem alérgenos
-                          </span>
-                        ) : (
-                          alergenos.map((alerg) => (
-                            <span
-                              key={alerg}
-                              className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill"
-                            >
-                              Contém {alerg}
-                            </span>
-                          ))
-                        )}
-                      </div>
-                    </div>
+                    </Link>
                   </div>
                 </div>
               )

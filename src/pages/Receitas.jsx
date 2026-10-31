@@ -184,13 +184,14 @@ export default function Receitas() {
                       </small>
                     </div>
 
-                    {/* BOTÃO VER RECEITA */}
-                    <button 
-                      type="button" 
-                      className="btn btn-outline-success w-100 rounded-3 fw-semibold py-2"
-                    >
-                      Ver receita
-                    </button>
+                    {/* BOTÃO VER RECEITA CORRIGIDO */}
+                    <Link
+                    to={`/receita/${id}`}
+                    className="btn btn-outline-success w-100 rounded-3 fw-semibold py-2 text-decoration-none d-flex align-items-center justify-content-center"
+                    style={{ borderColor: '#1b4332', color: '#1b4332' }}
+                     >
+                     Ver receita
+                   </Link>
                   </div>
                 </div>
               </div>
