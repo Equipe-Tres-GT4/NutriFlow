@@ -6,8 +6,9 @@ import {
   Route,
   useInRouterContext,
 } from 'react-router-dom'
-import { RecipeProvider } from './context/RecipeContext'
+import { RecipeProvider, useRecipes } from './context/RecipeContext'
 import CadastrarReceita from './pages/CadastrarReceita'
+import DetalhesReceita from './pages/DetalhesReceita'
 
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
@@ -17,7 +18,6 @@ import Receitas from './pages/Receitas'
 import Salvos from './pages/Salvos'
 import Login from './pages/Login'
 import Cadastro from './pages/Cadastro'
-
 
 function RoteadorSeguro({ children }) {
   let dentroDoRouter = false
@@ -46,6 +46,7 @@ export default function App() {
               <Route path="/" element={<Home />} />
               <Route path="/alimentos" element={<Alimentos />} />
               <Route path="/receitas" element={<Receitas />} />
+              <Route path="/receita/panqueca-de-banana" element={<DetalhesReceita />} />
               <Route path="/salvos" element={<Salvos />} />
               <Route path="/login" element={<Login />} />
               <Route path="/cadastro" element={<Cadastro />} />
