@@ -1,35 +1,61 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
-import { useAuth } from './auth/AuthContext'
-import Header from './components/Header'
+// src/App.jsx
+import React from 'react'
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useInRouterContext,
+} from 'react-router-dom'
+import { RecipeProvider, useRecipes } from './context/RecipeContext'
+import CadastrarReceita from './pages/CadastrarReceita'
+import DetalhesReceita from './pages/DetalhesReceita'
+
+import Navbar from './components/Navbar'
+import Footer from './components/Footer'
 import Home from './pages/Home'
+import Alimentos from './pages/Alimentos'
+import Receitas from './pages/Receitas'
+import Salvos from './pages/Salvos'
 import Login from './pages/Login'
 import Cadastro from './pages/Cadastro'
-import Catalogo from './components/Catalogo'
-import Receitas from './pages/Receitas'
+
+function RoteadorSeguro({ children }) {
+  let dentroDoRouter = false
+  try {
+    dentroDoRouter = useInRouterContext()
+  } catch (e) {
+    dentroDoRouter = false
+  }
+
+  if (dentroDoRouter) {
+    return <>{children}</>
+  }
+  return <BrowserRouter>{children}</BrowserRouter>
+}
 
 export default function App() {
-  const { usuario } = useAuth()
-
   return (
-    <>
-      <Header isAuthenticated={Boolean(usuario)} />
+    <RecipeProvider>
+      <RoteadorSeguro>
+        <div className="d-flex flex-column min-vh-100" style={{ backgroundColor: '#FAF8F5' }}>
+          <Navbar />
 
-      <Routes>
-        {/* Consultas públicas: não precisam de login. */}
-        <Route path="/" element={<Home />} />
-        <Route path="/alimentos" element={<Catalogo />} />
-        <Route path="/receitas" element={<Receitas />} />
+          <div className="flex-grow-1">
+            <Routes>
+              <Route path="/receitas/cadastrar" element={<CadastrarReceita />} />
+              <Route path="/" element={<Home />} />
+              <Route path="/alimentos" element={<Alimentos />} />
+              <Route path="/receitas" element={<Receitas />} />
+              <Route path="/receita/panqueca-de-banana" element={<DetalhesReceita />} />
+              <Route path="/salvos" element={<Salvos />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/cadastro" element={<Cadastro />} />
+            </Routes>
+          </div>
 
-        {/* Compatibilidade com os endereços usados por outras telas. */}
-        <Route path="/catalogo" element={<Navigate to="/alimentos" replace />} />
-        <Route path="/pesquisa" element={<Navigate to="/alimentos" replace />} />
-
-        {/* Autenticação. */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/cadastro" element={<Cadastro />} />
-
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </>
+          <Footer />
+        </div>
+      </RoteadorSeguro>
+    </RecipeProvider>
   )
 }

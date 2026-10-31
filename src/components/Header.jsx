@@ -1,170 +1,147 @@
-import { useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 
 import logo from '../assets/nutrilogo.png';
 import './Header.css';
 
-function Header({ isAuthenticated = false }) {
-  const { sair } = useAuth();
+export default function Header({ isAuthenticated = false }) {
+  const { usuario, sair } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [menuAberto, setMenuAberto] = useState(false);
-  const [perfilAberto, setPerfilAberto] = useState(false);
+  const menuRef = useRef(null);
 
-  function fecharMenu() {
+  // Fecha o menu ao clicar fora dele
+  useEffect(() => {
+    function handleClickFora(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuAberto(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickFora);
+    return () => document.removeEventListener('mousedown', handleClickFora);
+  }, []);
+
+  // Fecha o menu ao trocar de página
+  useEffect(() => {
     setMenuAberto(false);
-    setPerfilAberto(false);
-  }
+  }, [location]);
 
-  function encerrarSessao() {
+  function handleLogout() {
     sair();
-    fecharMenu();
+    setMenuAberto(false);
     navigate('/');
   }
 
-  const linkClass = ({ isActive }) =>
-    `nav-link linkMenu ${isActive ? 'ativo' : ''}`;
-
   return (
-    <header className="cabecalho">
-      <nav className="navbar navbar-expand-lg container-fluid">
-        <div className="header-conteudo">
+    <header className="bg-white border-bottom sticky-top py-2 px-3">
+      <div className="container d-flex align-items-center justify-content-between">
+        {/* Logo */}
+        <Link to="/" className="navbar-brand d-flex align-items-center text-decoration-none">
+          <span className="fw-bold text-success fs-4 d-flex align-items-center">
+            <i className="bi bi-flower2 me-2"></i> NutriFlow
+          </span>
+        </Link>
 
+        {/* Links Centrais */}
+        <nav className="d-none d-md-flex gap-4">
           <Link
             to="/"
-            className="logo"
-            onClick={fecharMenu}
+            className={`text-decoration-none fw-semibold ${location.pathname === '/' ? 'text-success' : 'text-secondary'}`}
           >
-            <img
-              src={logo}
-              alt="Logo do NutriFlow"
-              className="logo-icon"
-            />
+            Início
+          </Link>
+          <Link
+            to="/alimentos"
+            className={`text-decoration-none fw-semibold ${location.pathname === '/alimentos' ? 'text-success' : 'text-secondary'}`}
+          >
+            Alimentos
+          </Link>
+          <Link
+            to="/receitas"
+            className={`text-decoration-none fw-semibold ${location.pathname === '/receitas' ? 'text-success' : 'text-secondary'}`}
+          >
+            Receitas
+          </Link>
+        </nav>
+
+        {/* Ações da Direita */}
+        <div className="d-flex align-items-center gap-3 position-relative" ref={menuRef}>
+          <Link to="/alimentos" className="text-secondary fs-5" title="Pesquisar">
+            <i className="bi bi-search"></i>
           </Link>
 
-          
-          <button
-            className="botao-menu-mobile"
-            type="button"
-            aria-label="Abrir menu"
-            aria-expanded={menuAberto}
-            onClick={() => setMenuAberto(!menuAberto)}
-          >
-            <i className="bi bi-list"></i>
-          </button>
-
-          <div
-            className={`area-navegacao ${
-              menuAberto ? 'menu-aberto' : ''
-            }`}
-          >
-            <div className="menu">
-              <NavLink
-                to="/"
-                end
-                className={linkClass}
-                onClick={fecharMenu}
+          {isAuthenticated ? (
+            <div>
+              {/* Botão de Usuário que abre o menu */}
+              <button
+                type="button"
+                className="btn btn-light rounded-circle p-1 border d-flex align-items-center justify-content-center"
+                style={{ width: 40, height: 40 }}
+                onClick={() => setMenuAberto(!menuAberto)}
+                aria-expanded={menuAberto}
+                title="Minha Conta"
               >
-                Início
-              </NavLink>
+                <i className="bi bi-person fs-5 text-secondary"></i>
+              </button>
 
-              <NavLink
-                to="/alimentos"
-                className={linkClass}
-                onClick={fecharMenu}
-              >
-                Alimentos
-              </NavLink>
-
-              <NavLink
-                to="/receitas"
-                className={linkClass}
-                onClick={fecharMenu}
-              >
-                Receitas
-              </NavLink>
-            </div>
-
-            <div className="acoes-header">
-
-              <Link
-                to="/alimentos"
-                className="icone-header"
-                aria-label="Pesquisar alimentos"
-                onClick={fecharMenu}
-              >
-                <i className="bi bi-search"></i>
-              </Link>
-
-              <div className="perfil-container">
-                <button
-                  type="button"
-                  className="icone-header"
-                  aria-label="Menu do perfil"
-                  aria-expanded={perfilAberto}
-                  onClick={() => setPerfilAberto(!perfilAberto)}
+              {/* Menu Suspenso (Dropdown) */}
+              {menuAberto && (
+                <div
+                  className="card position-absolute end-0 mt-2 shadow border-0 rounded-4 overflow-hidden"
+                  style={{ width: 200, zIndex: 1050 }}
                 >
-                  <i className="bi bi-person"></i>
-                </button>
-
-                {perfilAberto && (
-                  <div className="menu-perfil">
-                    {isAuthenticated ? (
-                      <>
-                        <Link
-                          to="/perfil"
-                          onClick={fecharMenu}
-                        >
-                          <i className="bi bi-person me-2"></i>
-                          Perfil
-                        </Link>
-
-                        <Link
-                          to="/salvos"
-                          onClick={fecharMenu}
-                        >
-                          <i className="bi bi-bookmark me-2"></i>
-                          Salvos
-                        </Link>
-
-                        <button
-                          type="button"
-                          className="acao-sair-perfil"
-                          onClick={encerrarSessao}
-                        >
-                          <i className="bi bi-box-arrow-right me-2"></i>
-                          Sair
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <Link
-                          to="/login"
-                          onClick={fecharMenu}
-                        >
-                          <i className="bi bi-box-arrow-in-right me-2"></i>
-                          Entrar
-                        </Link>
-
-                        <Link
-                          to="/cadastro"
-                          onClick={fecharMenu}
-                        >
-                          <i className="bi bi-person-plus me-2"></i>
-                          Cadastrar
-                        </Link>
-                      </>
-                    )}
+                  <div className="py-2 px-3 border-bottom bg-light">
+                    <span className="d-block fw-bold text-truncate text-dark small">
+                      {usuario?.nome || 'Usuário'}
+                    </span>
+                    <span className="d-block text-muted text-truncate" style={{ fontSize: '0.75rem' }}>
+                      {usuario?.email}
+                    </span>
                   </div>
-                )}
-              </div>
 
+                  <div className="p-1">
+                    <Link
+                      to="/perfil"
+                      className="dropdown-item d-flex align-items-center gap-2 py-2 px-3 rounded-3 text-secondary text-decoration-none"
+                    >
+                      <i className="bi bi-person text-success"></i> Perfil
+                    </Link>
+
+                    <Link
+                      to="/salvos"
+                      className="dropdown-item d-flex align-items-center gap-2 py-2 px-3 rounded-3 text-secondary text-decoration-none"
+                    >
+                      <i className="bi bi-bookmark text-success"></i> Salvos
+                      {usuario?.receitasSalvas?.length > 0 && (
+                        <span className="badge bg-success-subtle text-success ms-auto rounded-pill">
+                          {usuario.receitasSalvas.length}
+                        </span>
+                      )}
+                    </Link>
+
+                    <hr className="my-1 text-muted opacity-25" />
+
+                    {/* Botão de Logout */}
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="dropdown-item d-flex align-items-center gap-2 py-2 px-3 rounded-3 text-danger border-0 bg-transparent w-100 text-start"
+                    >
+                      <i className="bi bi-box-arrow-right"></i> Sair
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
+          ) : (
+            <Link to="/login" className="btn btn-outline-success btn-sm rounded-pill px-3 fw-semibold">
+              Entrar
+            </Link>
+          )}
         </div>
-      </nav>
+      </div>
     </header>
   );
 }
-
-export default Header;

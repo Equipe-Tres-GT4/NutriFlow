@@ -1,52 +1,130 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 
-const AuthContext = createContext(null)
-
-const lerUsuarios = () => JSON.parse(localStorage.getItem('usuarios') || '[]')
-const emailValido = (email) => /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/.test(email)
+const AuthContext = createContext({})
 
 export function AuthProvider({ children }) {
-  const [usuario, setUsuario] = useState(() =>
-    JSON.parse(localStorage.getItem('sessao') || 'null')
-  )
+  const [usuario, setUsuario] = useState(() => {
+    try {
+      const salvo = localStorage.getItem('nutriflow_usuario_ativo')
+      return salvo ? JSON.parse(salvo) : null
+    } catch {
+      return null
+    }
+  })
+
+  useEffect(() => {
+    if (usuario) {
+      localStorage.setItem('nutriflow_usuario_ativo', JSON.stringify(usuario))
+    } else {
+      localStorage.removeItem('nutriflow_usuario_ativo')
+    }
+  }, [usuario])
 
   function cadastrar({ nome, email, senha }) {
-    email = email.trim().toLowerCase()
-    if (!emailValido(email)) {
-      throw new Error('Digite um e-mail válido, como nome@exemplo.com.')
+    const emailLimpo = email.trim().toLowerCase()
+    const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]')
+
+    if (usuarios.some((u) => u.email === emailLimpo)) {
+      throw new Error('Já existe uma conta com este e-mail.')
     }
 
-    const usuarios = lerUsuarios()
-    if (usuarios.some((u) => u.email === email)) {
-      throw new Error('Este e-mail já está cadastrado.')
+    const novo = {
+      id: Date.now(),
+      nome: nome.trim(),
+      email: emailLimpo,
+      senha,
+      telefone: '',
+      peso: '',
+      altura: '',
+      objetivo: 'Saúde e Longevidade',
+      restricoes: '',
+      receitasSalvas: [],
+      receitasCriadas: []
     }
-    localStorage.setItem('usuarios', JSON.stringify([...usuarios, { nome, email, senha }]))
+
+    usuarios.push(novo)
+    localStorage.setItem('usuarios', JSON.stringify(usuarios))
   }
 
   function entrar({ email, senha }) {
-    email = email.trim().toLowerCase()
-    if (!emailValido(email)) {
-      throw new Error('Digite um e-mail válido, como nome@exemplo.com.')
+    const emailLimpo = email.trim().toLowerCase()
+    const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]')
+
+    const conta = usuarios.find((u) => u.email === emailLimpo && u.senha === senha)
+    if (!conta) {
+      throw new Error('E-mail ou senha incorretos.')
     }
 
-    const encontrado = lerUsuarios().find((u) => u.email === email && u.senha === senha)
-    if (!encontrado) throw new Error('E-mail ou senha incorretos.')
-    const sessao = { nome: encontrado.nome, email: encontrado.email } // nunca guarde a senha na sessão
-    localStorage.setItem('sessao', JSON.stringify(sessao))
-    setUsuario(sessao)
+    const { senha: _, ...dadosSessao } = conta
+    setUsuario(dadosSessao)
   }
 
   function sair() {
-    localStorage.removeItem('sessao')
     setUsuario(null)
   }
 
+  function alternarSalvarReceita(receita) {
+    if (!usuario) {
+      throw new Error('Faça login para salvar esta receita.')
+    }
+
+    const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]')
+    const idx = usuarios.findIndex((u) => u.email === usuario.email)
+    if (idx === -1) return
+
+    const salvas = usuarios[idx].receitasSalvas || []
+    const existe = salvas.some((r) => r.id === receita.id)
+
+    const novasSalvas = existe
+      ? salvas.filter((r) => r.id !== receita.id)
+      : [...salvas, receita]
+
+    usuarios[idx].receitasSalvas = novasSalvas
+    localStorage.setItem('usuarios', JSON.stringify(usuarios))
+
+    setUsuario((prev) => ({ ...prev, receitasSalvas: novasSalvas }))
+  }
+
+  function atualizarPerfil(dadosComplementares) {
+    if (!usuario) return
+
+    const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]')
+    const idx = usuarios.findIndex((u) => u.email === usuario.email)
+    if (idx === -1) return
+
+    const usuarioAtualizado = {
+      ...usuarios[idx],
+      ...dadosComplementares
+    }
+
+    usuarios[idx] = usuarioAtualizado
+    localStorage.setItem('usuarios', JSON.stringify(usuarios))
+
+    const { senha: _, ...sessaoAtualizada } = usuarioAtualizado
+    setUsuario(sessaoAtualizada)
+  }
+
   return (
-    <AuthContext.Provider value={{ usuario, cadastrar, entrar, sair }}>
+    <AuthContext.Provider
+      value={{
+        usuario,
+        estaAutenticado: Boolean(usuario),
+        entrar,
+        cadastrar,
+        sair,
+        alternarSalvarReceita,
+        atualizarPerfil
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
-export const useAuth = () => useContext(AuthContext)
+export function useAuth() {
+  const contexto = useContext(AuthContext)
+  if (!contexto) {
+    throw new Error('useAuth deve ser utilizado dentro de AuthProvider')
+  }
+  return contexto
+}
