@@ -80,6 +80,9 @@ export default function Salvos() {
                     alt={nome}
                     className="w-100"
                     style={{ height: 180, objectFit: 'cover' }}
+                    onError={(e) => {
+                      e.target.src = 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=500&auto=format&fit=crop&q=60'
+                    }}
                   />
 
                   <div className="card-body d-flex flex-column justify-content-between p-3">
