@@ -40,6 +40,8 @@ export default function IngredientsList({ porcoesIniciais = 2, ingredientesBase 
     setChecados((prev) => ({ ...prev, [index]: !prev[index] }))
   };
 
+  const listaIngredientes = Array.isArray(ingredientesBase) ? ingredientesBase : [];
+
   return (
     <section>
       <h2 className="h5 fw-bold mb-3">Ingredientes</h2>

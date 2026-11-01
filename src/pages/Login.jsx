@@ -1,61 +1,64 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../auth/AuthContext'
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext';
 
 export default function Login() {
-  const { entrar } = useAuth()
-  const navigate = useNavigate()
-  const [form, setForm] = useState({ email: '', senha: '' })
-  const [mostrarSenha, setMostrarSenha] = useState(false)
-  const [modoRecuperacao, setModoRecuperacao] = useState(false)
-  const [senhaNova, setSenhaNova] = useState('')
-  const [confirmarSenha, setConfirmarSenha] = useState('')
-  const [erro, setErro] = useState('')
-  const [sucesso, setSucesso] = useState('')
+  const auth = useAuth() || {};
+  // Garante compatibilidade caso o método no AuthContext se chame 'entrar', 'login' ou 'logar'
+  const entrar = auth.entrar || auth.login || auth.logar || (() => { throw new Error("Função de login não encontrada no AuthContext"); });
+  
+  const navigate = useNavigate();
+  const [form, setForm] = useState({ email: '', senha: '' });
+  const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [modoRecuperacao, setModoRecuperacao] = useState(false);
+  const [senhaNova, setSenhaNova] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
+  const [erro, setErro] = useState('');
+  const [sucesso, setSucesso] = useState('');
 
-  const mudar = (e) => setForm({ ...form, [e.target.name]: e.target.value })
+  const mudar = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   function enviar(e) {
-    e.preventDefault()
+    e.preventDefault();
 
     if (modoRecuperacao) {
-      const email = form.email.trim().toLowerCase()
+      const email = form.email.trim().toLowerCase();
       if (senhaNova.length < 6) {
-        setErro('A senha precisa ter pelo menos 6 caracteres.')
-        setSucesso('')
-        return
+        setErro('A senha precisa ter pelo menos 6 caracteres.');
+        setSucesso('');
+        return;
       }
       if (senhaNova !== confirmarSenha) {
-        setErro('As senhas não coincidem.')
-        setSucesso('')
-        return
+        setErro('As senhas não coincidem.');
+        setSucesso('');
+        return;
       }
 
-      const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]')
-      const indiceUsuario = usuarios.findIndex((usuario) => usuario.email === email)
+      const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
+      const indiceUsuario = usuarios.findIndex((usuario) => usuario.email === email);
       if (indiceUsuario === -1) {
-        setErro('Não encontramos uma conta com este e-mail.')
-        setSucesso('')
-        return
+        setErro('Não encontramos uma conta com este e-mail.');
+        setSucesso('');
+        return;
       }
 
-      usuarios[indiceUsuario].senha = senhaNova
-      localStorage.setItem('usuarios', JSON.stringify(usuarios))
-      setErro('')
-      setSenhaNova('')
-      setConfirmarSenha('')
-      setModoRecuperacao(false)
-      setSucesso('Senha alterada. Você já pode entrar com a nova senha.')
-      return
+      usuarios[indiceUsuario].senha = senhaNova;
+      localStorage.setItem('usuarios', JSON.stringify(usuarios));
+      setErro('');
+      setSenhaNova('');
+      setConfirmarSenha('');
+      setModoRecuperacao(false);
+      setSucesso('Senha alterada. Você já pode entrar com a nova senha.');
+      return;
     }
 
     try {
-      entrar(form)
-      setErro('')
-      navigate('/') // Retorna para a página principal após logar com sucesso
+      entrar(form);
+      setErro('');
+      navigate('/'); // Retorna para a página principal após logar com sucesso
     } catch (err) {
-      setSucesso('')
-      setErro(err.message)
+      setSucesso('');
+      setErro(err?.message || 'Ocorreu um erro ao entrar.');
     }
   }
 
@@ -76,8 +79,6 @@ export default function Login() {
           <input
             name="email"
             type="email"
-            pattern="[^\s@]+@[^\s@.]+(\.[^\s@.]+)+"
-            title="Use um e-mail com domínio, como nome@exemplo.com."
             className="form-control form-control-lg fs-6"
             value={form.email}
             onChange={mudar}
@@ -143,7 +144,7 @@ export default function Login() {
               <button
                 type="button"
                 className="btn btn-link btn-sm p-0 text-decoration-none"
-                onClick={() => { setModoRecuperacao(true); setErro(''); setSucesso('') }}
+                onClick={() => { setModoRecuperacao(true); setErro(''); setSucesso(''); }}
               >
                 Esqueceu a senha?
               </button>
@@ -163,7 +164,7 @@ export default function Login() {
             <button
               type="button"
               className="btn btn-link btn-sm p-0 text-decoration-none"
-              onClick={() => { setModoRecuperacao(false); setErro(''); setSucesso('') }}
+              onClick={() => { setModoRecuperacao(false); setErro(''); setSucesso(''); }}
             >
               Voltar para entrar
             </button>
@@ -183,5 +184,5 @@ export default function Login() {
         </div>
       </form>
     </div>
-  )
+  );
 }

@@ -1,34 +1,37 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { useAuth } from '../auth/AuthContext'
+import React, { useState, useRef, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext';
 
-export default function Header({ isAuthenticated }) {
-  const { usuario, sair } = useAuth()
-  const navigate = useNavigate()
-  const location = useLocation()
-  const [menuAberto, setMenuAberto] = useState(false)
-  const menuRef = useRef(null)
+import logo from '../assets/nutrilogo.png';
+import './Header.css';
+
+export default function Header({ isAuthenticated = false }) {
+  const { usuario, sair } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [menuAberto, setMenuAberto] = useState(false);
+  const menuRef = useRef(null);
 
   // Fecha o menu ao clicar fora dele
   useEffect(() => {
     function handleClickFora(e) {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setMenuAberto(false)
+        setMenuAberto(false);
       }
     }
-    document.addEventListener('mousedown', handleClickFora)
-    return () => document.removeEventListener('mousedown', handleClickFora)
-  }, [])
+    document.addEventListener('mousedown', handleClickFora);
+    return () => document.removeEventListener('mousedown', handleClickFora);
+  }, []);
 
   // Fecha o menu ao trocar de página
   useEffect(() => {
-    setMenuAberto(false)
-  }, [location])
+    setMenuAberto(false);
+  }, [location]);
 
   function handleLogout() {
-    sair()
-    setMenuAberto(false)
-    navigate('/')
+    sair();
+    setMenuAberto(false);
+    navigate('/');
   }
 
   return (
@@ -71,7 +74,7 @@ export default function Header({ isAuthenticated }) {
 
           {isAuthenticated ? (
             <div>
-              {/* Botão de Usuário que abre o menu da foto */}
+              {/* Botão de Usuário que abre o menu */}
               <button
                 type="button"
                 className="btn btn-light rounded-circle p-1 border d-flex align-items-center justify-content-center"
@@ -140,5 +143,5 @@ export default function Header({ isAuthenticated }) {
         </div>
       </div>
     </header>
-  )
+  );
 }
