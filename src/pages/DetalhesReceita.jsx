@@ -1,90 +1,136 @@
-import React from 'react';
-import NutritionCard from '../components/NutritionCard';
-import IngredientsList from '../components/IngredientsList';
-import PreparationSteps from '../components/PreparationSteps';
+import { useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import IngredientsList from '../components/IngredientsList'
+import NutritionCard from '../components/NutritionCard'
+import PreparationSteps from '../components/PreparationSteps'
+import { useRecipes } from '../context/RecipeContext'
+
+const criarSlug = (valor) =>
+  String(valor || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
 
 export default function DetalhesReceita() {
-  const receita = {
-    titulo: "Panqueca de Banana",
-    autor: "Comunidade",
-    tempo: "20 min",
-    avaliacao: "4.8 (1 avaliação)",
-    tags: ["Sem alérgenos", "Fácil"],
-    imagem: "https://via.placeholder.com/600x400", // Substituir pela imagem real
-    porcoesBase: 2,
-    ingredientes: [
-      { qtdBase: 3, unidade: "", nome: "bananas maduras" },
-      { qtdBase: 2, unidade: "", nome: "ovos" },
-      { qtdBase: 1, unidade: "xícara de", nome: "aveia em flocos" },
-      { qtdBase: 1, unidade: "pitada de", nome: "Canela a gosto" },
-    ],
-    passos: [
-      "Em um prato, amasse bem as bananas com um garfo até obter um purê.",
-      "Adicione os ovos e a aveia, misturando bem até obter uma massa homogênea.",
-      "Aqueça uma frigideira antiaderente e coloque porções da massa.",
-      "Cozinhe em fogo médio até dourar os dois lados."
-    ]
-  };
+  const { id } = useParams()
+  const { recipes, savedRecipeIds, toggleSaveRecipe } = useRecipes()
+  const [compartilhado, setCompartilhado] = useState(false)
+  const receita = recipes.find((item) => {
+    const receitaId = String(item.id || item.title || item.nome)
+    const nome = item.title || item.nome
+    return receitaId === id || criarSlug(nome) === id
+  })
+
+  if (!receita) {
+    return (
+      <main className="container py-5 text-center">
+        <h1 className="h3 fw-bold">Receita não encontrada</h1>
+        <p className="text-secondary mb-4">Ela pode ter sido removida ou o link está incorreto.</p>
+        <Link to="/receitas" className="btn btn-success">Voltar para receitas</Link>
+      </main>
+    )
+  }
+
+  const nome = receita.nome || receita.title || 'Receita'
+  const autor = receita.author || receita.autor || 'Comunidade'
+  const tempo = receita.tempoPreparo || receita.tempo || receita.time
+  const imagem = receita.imagem || receita.image
+  const ingredientes = receita.ingredientes || receita.ingredients || []
+  const passos = receita.modoPreparo || receita.passos || receita.preparationSteps || []
+  const porcoes = Number(receita.porcoes || receita.servings || 1)
+  const etiquetas = receita.tags || receita.etiquetas || []
+  const salvo = savedRecipeIds.includes(String(receita.id || receita.title || receita.nome))
+  const nutricional = receita.nutricao || receita.nutrition
+
+  const compartilhar = async () => {
+    if (!navigator.clipboard) return
+    await navigator.clipboard.writeText(window.location.href)
+    setCompartilhado(true)
+    window.setTimeout(() => setCompartilhado(false), 2000)
+  }
 
   return (
-    <div className="min-h-screen bg-[#FBFBF9] py-8 px-4 md:px-12">
-      {/* Botões do Topo */}
-      <div className="flex justify-between items-center mb-6">
-        <button className="bg-[#1C3B2B] text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2">
-          ← Voltar para receitas
-        </button>
-        <div className="flex gap-3">
-          <button className="bg-white border border-gray-200 px-4 py-2 rounded-full text-sm font-medium text-gray-700 flex items-center gap-1.5 hover:bg-gray-50">
-            ♡ Salvar
+    <main className="container py-4 py-lg-5">
+      <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <Link to="/receitas" className="btn btn-outline-success">
+          <i className="bi bi-arrow-left me-2" aria-hidden="true"></i>
+          Voltar para receitas
+        </Link>
+        <div className="d-flex gap-2">
+          <button
+            type="button"
+            className={`btn ${salvo ? 'btn-success' : 'btn-outline-secondary'}`}
+            onClick={() => toggleSaveRecipe(String(receita.id || receita.title || receita.nome))}
+            aria-pressed={salvo}
+          >
+            <i className={`bi ${salvo ? 'bi-heart-fill' : 'bi-heart'} me-2`} aria-hidden="true"></i>
+            {salvo ? 'Salva' : 'Salvar'}
           </button>
-          <button className="bg-white border border-gray-200 px-4 py-2 rounded-full text-sm font-medium text-gray-700 flex items-center gap-1.5 hover:bg-gray-50">
-            ⎘ Compartilhar
+          <button type="button" className="btn btn-outline-secondary" onClick={compartilhar}>
+            <i className="bi bi-share me-2" aria-hidden="true"></i>
+            {compartilhado ? 'Link copiado' : 'Compartilhar'}
           </button>
         </div>
       </div>
 
-      {/* Grid Principal: Esquerda (7 colunas em desktop) / Direita (5 colunas em desktop) */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-        
-        {/* Coluna Esquerda */}
-        <div className="md:col-span-7">
-          <h1 className="text-3xl font-serif font-bold text-[#1C3B2B] mb-2">{receita.titulo}</h1>
-          <p className="text-sm text-gray-600 mb-3">
-            Por {receita.autor} • 🕒 {receita.tempo} • ★ {receita.avaliacao}
-          </p>
-          
-          <div className="flex gap-2 mb-4">
-            {receita.tags.map((tag, idx) => (
-              <span key={idx} className="bg-[#DCEBE1] text-[#1C3B2B] text-xs px-3 py-1 rounded-full font-medium">
-                {tag}
-              </span>
-            ))}
+      <div className="row g-4 g-lg-5">
+        <section className="col-12 col-lg-7">
+          <h1 className="h2 fw-bold mb-2" style={{ color: '#1b4332' }}>{nome}</h1>
+          <div className="d-flex flex-wrap gap-3 text-secondary small mb-3">
+            <span>Por {autor}</span>
+            {tempo && <span><i className="bi bi-clock me-1" aria-hidden="true"></i>{tempo}</span>}
+            {receita.dificuldade && <span>{receita.dificuldade}</span>}
           </div>
 
-          <img 
-            src={receita.imagem} 
-            alt={receita.titulo} 
-            className="w-full h-80 object-cover rounded-3xl mb-8"
-          />
+          {etiquetas.length > 0 && (
+            <div className="d-flex flex-wrap gap-2 mb-3">
+              {etiquetas.map((etiqueta) => (
+                <span key={etiqueta} className="badge rounded-pill text-bg-success-subtle border border-success-subtle text-success-emphasis">
+                  {etiqueta}
+                </span>
+              ))}
+            </div>
+          )}
 
-          {/* Informações Nutricionais */}
-          <h2 className="text-xl font-bold text-[#1C3B2B] mb-4">Informação Nutricional</h2>
-          <div className="flex gap-3 flex-wrap">
-            <NutritionCard valor="280" unidade="kcal" label="Calorias" textoExplicativo="por porção" corFundo="#F5F3EB" />
-            <NutritionCard valor="45" unidade="g" label="Carboidratos" textoExplicativo="completos" corFundo="#E8EEF5" />
-            <NutritionCard valor="8" unidade="g" label="Proteínas" textoExplicativo="biodisponíveis" corFundo="#E8F4EC" />
-            <NutritionCard valor="6" unidade="g" label="Gorduras" textoExplicativo="saudáveis" corFundo="#FCEEE8" />
+          {imagem && (
+            <img
+              src={imagem}
+              alt={nome}
+              className="img-fluid w-100 rounded-4 mb-4"
+              style={{ maxHeight: 440, objectFit: 'cover' }}
+              onError={(event) => {
+                event.currentTarget.onerror = null
+                event.currentTarget.src = 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=900&auto=format&fit=crop&q=80'
+              }}
+            />
+          )}
+
+          {receita.descricao && <p className="text-secondary mb-4">{receita.descricao}</p>}
+
+          {nutricional && (
+            <section aria-labelledby="nutrition-title">
+              <h2 id="nutrition-title" className="h5 fw-bold mb-3">Informação nutricional</h2>
+              <div className="row g-2">
+                {Object.entries(nutricional).map(([label, valor]) => (
+                  <div className="col-6 col-md-3" key={label}>
+                    <NutritionCard valor={valor} label={label} />
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+        </section>
+
+        <aside className="col-12 col-lg-5">
+          <div className="bg-light border rounded-4 p-3 p-md-4">
+            <IngredientsList porcoesIniciais={porcoes} ingredientesBase={ingredientes} />
+            {passos.length > 0 && <hr className="my-4" />}
+            {passos.length > 0 && <PreparationSteps passos={passos} />}
           </div>
-        </div>
-
-        {/* Coluna Direita */}
-        <div className="md:col-span-5 bg-[#F5F3EB] p-6 rounded-3xl self-start">
-          <IngredientsList porcoesIniciais={receita.porcoesBase} ingredientesBase={receita.ingredientes} />
-          <hr className="my-6 border-gray-300" />
-          <PreparationSteps passos={receita.passos} />
-        </div>
-
+        </aside>
       </div>
-    </div>
-  );
+    </main>
+  )
 }

@@ -1,61 +1,82 @@
-import React, { useState } from 'react';
+import { useState } from 'react'
+
+const lerQuantidade = (valor) => {
+  const partes = valor.trim().split(/\s+/)
+  if (partes.length === 2 && partes[1].includes('/')) {
+    const [numerador, denominador] = partes[1].split('/').map(Number)
+    return Number(partes[0]) + numerador / denominador
+  }
+  if (valor.includes('/')) {
+    const [numerador, denominador] = valor.split('/').map(Number)
+    return numerador / denominador
+  }
+  return Number(valor.replace(',', '.'))
+}
+
+const formatarQuantidade = (quantidade) =>
+  Number(quantidade).toLocaleString('pt-BR', { maximumFractionDigits: 2 })
+
+const ajustarQuantidade = (ingrediente, porcoes, porcoesIniciais) => {
+  const correspondencia = ingrediente.match(/^(\s*)(\d+\s+\d+\/\d+|\d+\/\d+|\d+(?:[.,]\d+)?)(?=\s|$)(.*)$/)
+  if (!correspondencia) return ingrediente
+
+  const [, espaco, quantidadeOriginal, restante] = correspondencia
+  const quantidade = lerQuantidade(quantidadeOriginal)
+  const fator = porcoes / Math.max(1, Number(porcoesIniciais) || 1)
+  if (!Number.isFinite(quantidade) || fator === 1) return ingrediente
+
+  return `${espaco}${formatarQuantidade(quantidade * fator)}${restante}`
+}
 
 export default function IngredientsList({ porcoesIniciais = 2, ingredientesBase }) {
   const [porcoes, setPorcoes] = useState(porcoesIniciais);
-  const [checados, setChecados] = useState({});
+  const [checados, setChecados] = useState({})
 
   const alterarPorcoes = (delta) => {
-    setPorcoes((prev) => Math.max(1, prev + delta));
+    setPorcoes((prev) => Math.max(1, prev + delta))
   };
 
   const toggleCheck = (index) => {
-    setChecados((prev) => ({ ...prev, [index]: !prev[index] }));
+    setChecados((prev) => ({ ...prev, [index]: !prev[index] }))
   };
 
   return (
-    <div className="bg-[#F5F3EB] p-6 rounded-2xl">
-      <h2 className="text-xl font-bold text-[#1C3B2B] mb-4">Ingredientes</h2>
-      
-      {/* Controles de Porção */}
-      <div className="flex items-center gap-4 mb-6">
-        <div className="flex items-center bg-[#1C3B2B] text-white rounded-xl px-3 py-1.5 gap-3">
-          <button 
-            onClick={() => alterarPorcoes(-1)}
-            className="text-lg font-bold hover:opacity-80 px-1"
-          >
-            -
-          </button>
-          <span className="font-semibold">{porcoes} porções</span>
-          <button 
-            onClick={() => alterarPorcoes(1)}
-            className="text-lg font-bold hover:opacity-80 px-1"
-          >
-            +
-          </button>
-        </div>
+    <section>
+      <h2 className="h5 fw-bold mb-3">Ingredientes</h2>
+      <div className="d-inline-flex align-items-center gap-3 bg-white border rounded-pill px-2 py-1 mb-3">
+        <button type="button" className="btn btn-sm btn-light rounded-circle" onClick={() => alterarPorcoes(-1)} aria-label="Diminuir porções">
+          <i className="bi bi-dash" aria-hidden="true"></i>
+        </button>
+        <span className="small fw-semibold">{porcoes} porções</span>
+        <button type="button" className="btn btn-sm btn-light rounded-circle" onClick={() => alterarPorcoes(1)} aria-label="Aumentar porções">
+          <i className="bi bi-plus" aria-hidden="true"></i>
+        </button>
       </div>
-
-      {/* Lista de Ingredientes com Multiplicador */}
-      <ul className="space-y-3">
-        {ingredientesBase.map((item, idx) => {
-          const quantidadeCalculada = (item.qtdBase / porcoesIniciais) * porcoes;
-          const estaChecado = checados[idx];
+      <ul className="list-unstyled d-grid gap-2 mb-0">
+        {(ingredientesBase || []).map((item, idx) => {
+          const estaChecado = checados[idx]
+          const nomeItem = typeof item === 'string'
+            ? ajustarQuantidade(item, porcoes, porcoesIniciais)
+            : item.qtdBase != null || item.quantidade != null
+              ? `${formatarQuantidade((Number(item.qtdBase ?? item.quantidade) / porcoesIniciais) * porcoes)} ${item.unidade || ''} ${item.nome || ''}`.trim()
+              : item.nome || ''
 
           return (
-            <li key={idx} className="flex items-center gap-3">
+            <li key={`${nomeItem}-${idx}`} className="form-check">
               <input
+                id={`ingrediente-${idx}`}
                 type="checkbox"
+                className="form-check-input"
                 checked={!!estaChecado}
                 onChange={() => toggleCheck(idx)}
-                className="w-4 h-4 accent-[#1C3B2B] rounded cursor-pointer"
               />
-              <span className={estaChecado ? "line-through text-gray-400" : "text-gray-800"}>
-                {quantidadeCalculada} {item.unidade} {item.nome}
-              </span>
+              <label htmlFor={`ingrediente-${idx}`} className={`form-check-label ${estaChecado ? 'text-decoration-line-through text-secondary' : ''}`}>
+                {nomeItem}
+              </label>
             </li>
-          );
+          )
         })}
       </ul>
-    </div>
-  );
+    </section>
+  )
 }
