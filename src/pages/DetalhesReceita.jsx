@@ -51,30 +51,6 @@ export default function DetalhesReceita() {
     window.setTimeout(() => setCompartilhado(false), 2000)
   }
 
-  const receitaId = String(receita.id || receita.title || receita.nome);
-  const titulo = receita.nome || receita.title;
-  const autor = receita.author || receita.autor || "Comunidade";
-  const tempo = receita.tempo || receita.time || "20 min";
-  const nota = Number(receita.nota || receita.rating || 4.8).toFixed(1);
-  const avaliacaoTexto = `${nota} (${receita.ratingCount || 1} avaliação)`;
-  const imagem = receita.imagem || receita.image || "/boloCenoura.jpg";
-  const tags = receita.tags || ["Sem alérgenos", "Fácil"];
-  const porcoesBase = receita.porcoesBase || 2;
-  const isSaved = savedRecipeIds ? savedRecipeIds.includes(receitaId) : false;
-
-  const ingredientesFormatados = Array.isArray(receita.ingredientes)
-    ? receita.ingredientes.map(item => typeof item === 'string' ? { qtdBase: 1, unidade: "", nome: item } : item)
-    : [{ qtdBase: 1, unidade: "", nome: receita.ingredientes || "Ingredientes não especificados" }];
-
-  const passosFormatados = Array.isArray(receita.preparo) 
-    ? receita.preparo 
-    : (receita.passos || [receita.preparo || "Modo de preparo não informado."]);
-
-  const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
-    alert('Link da receita copiado para a área de transferência!');
-  };
-
   return (
     <main className="container py-4 py-lg-5">
       <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
@@ -97,24 +73,8 @@ export default function DetalhesReceita() {
             {compartilhado ? 'Link copiado' : 'Compartilhar'}
           </button>
 
-          <div className="d-flex align-items-center gap-2">
-            <button 
-              onClick={() => toggleSaveRecipe(receitaId)}
-              className="btn bg-white border px-4 py-2 rounded-pill fw-semibold text-dark shadow-sm d-inline-flex align-items-center gap-2 transition-all"
-              style={{ borderColor: '#E5E7EB', fontSize: '0.9rem' }}
-            >
-              {isSaved ? <i className="bi bi-heart-fill text-danger"></i> : <i className="bi bi-heart"></i>} 
-              <span>{isSaved ? 'Salvo' : 'Salvar'}</span>
-            </button>
-            <button 
-              onClick={handleShare}
-              className="btn bg-white border px-4 py-2 rounded-pill fw-semibold text-dark shadow-sm d-inline-flex align-items-center gap-2 transition-all"
-              style={{ borderColor: '#E5E7EB', fontSize: '0.9rem' }}
-            >
-              <i className="bi bi-share"></i> Compartilhar
-            </button>
-          </div>
         </div>
+      </div>
 
       <div className="row g-4 g-lg-5">
         <section className="col-12 col-lg-7">
