@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useRecipes } from '../context/RecipeContext'
 
@@ -184,14 +184,13 @@ export default function Receitas() {
                       </small>
                     </div>
 
-                    {/* BOTÃO VER RECEITA CORRIGIDO */}
+                    {/* BOTÃO VER RECEITA */}
                     <Link
-                    to={`/receita/${id}`}
-                    className="btn btn-outline-success w-100 rounded-3 fw-semibold py-2 text-decoration-none d-flex align-items-center justify-content-center"
-                    style={{ borderColor: '#1b4332', color: '#1b4332' }}
-                     >
-                     Ver receita
-                   </Link>
+                      to={`/receitas/${encodeURIComponent(id)}`}
+                      className="btn btn-outline-success w-100 rounded-3 fw-semibold py-2"
+                    >
+                      Ver receita
+                    </Link>
                   </div>
                 </div>
               </div>

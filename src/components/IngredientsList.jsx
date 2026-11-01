@@ -1,59 +1,84 @@
-import React, { useState } from 'react';
+import { useState } from 'react'
 
-export default function IngredientsList({ ingredientesBase }) {
-  const [checados, setChecados] = useState({});
+const lerQuantidade = (valor) => {
+  const partes = valor.trim().split(/\s+/)
+  if (partes.length === 2 && partes[1].includes('/')) {
+    const [numerador, denominador] = partes[1].split('/').map(Number)
+    return Number(partes[0]) + numerador / denominador
+  }
+  if (valor.includes('/')) {
+    const [numerador, denominador] = valor.split('/').map(Number)
+    return numerador / denominador
+  }
+  return Number(valor.replace(',', '.'))
+}
+
+const formatarQuantidade = (quantidade) =>
+  Number(quantidade).toLocaleString('pt-BR', { maximumFractionDigits: 2 })
+
+const ajustarQuantidade = (ingrediente, porcoes, porcoesIniciais) => {
+  const correspondencia = ingrediente.match(/^(\s*)(\d+\s+\d+\/\d+|\d+\/\d+|\d+(?:[.,]\d+)?)(?=\s|$)(.*)$/)
+  if (!correspondencia) return ingrediente
+
+  const [, espaco, quantidadeOriginal, restante] = correspondencia
+  const quantidade = lerQuantidade(quantidadeOriginal)
+  const fator = porcoes / Math.max(1, Number(porcoesIniciais) || 1)
+  if (!Number.isFinite(quantidade) || fator === 1) return ingrediente
+
+  return `${espaco}${formatarQuantidade(quantidade * fator)}${restante}`
+}
+
+export default function IngredientsList({ porcoesIniciais = 2, ingredientesBase }) {
+  const [porcoes, setPorcoes] = useState(porcoesIniciais);
+  const [checados, setChecados] = useState({})
+
+  const alterarPorcoes = (delta) => {
+    setPorcoes((prev) => Math.max(1, prev + delta))
+  };
 
   const toggleCheck = (index) => {
-    setChecados((prev) => ({ ...prev, [index]: !prev[index] }));
+    setChecados((prev) => ({ ...prev, [index]: !prev[index] }))
   };
 
   const listaIngredientes = Array.isArray(ingredientesBase) ? ingredientesBase : [];
 
   return (
-    <div>
-      <h3 className="fw-bold mb-4" style={{ color: '#1b4332', fontSize: '1.35rem', fontFamily: 'Georgia, serif' }}>
-        Ingredientes
-      </h3>
-
-      <ul className="list-unstyled space-y-3 mb-0">
-        {listaIngredientes.map((item, idx) => {
-          const estaChecado = checados[idx];
-          
-          let textoIngrediente = '';
-
-          if (typeof item === 'string') {
-            textoIngrediente = item;
-          } else {
-            const qtd = item.qtdBase;
-            const unidade = item.unidade || '';
-            const nome = item.nome || '';
-
-            // Se o qtdBase for 1 e o nome já começar com uma quantidade ou for "Sal a gosto", ignora o "1" da frente
-            if (qtd === 1 && (nome.toLowerCase().startsWith('sal') || nome.toLowerCase().startsWith('cheiro') || nome.toLowerCase().startsWith('óleo') || nome.toLowerCase().startsWith('oleo') || nome.toLowerCase().startsWith('farinha') || nome.toLowerCase().startsWith('ovo'))) {
-              textoIngrediente = `${unidade} ${nome}`.trim();
-            } else if (qtd && qtd !== 1) {
-              textoIngrediente = `${qtd} ${unidade} ${nome}`.trim();
-            } else {
-              textoIngrediente = `${unidade} ${nome}`.trim();
-            }
-          }
+    <section>
+      <h2 className="h5 fw-bold mb-3">Ingredientes</h2>
+      <div className="d-inline-flex align-items-center gap-3 bg-white border rounded-pill px-2 py-1 mb-3">
+        <button type="button" className="btn btn-sm btn-light rounded-circle" onClick={() => alterarPorcoes(-1)} aria-label="Diminuir porções">
+          <i className="bi bi-dash" aria-hidden="true"></i>
+        </button>
+        <span className="small fw-semibold">{porcoes} porções</span>
+        <button type="button" className="btn btn-sm btn-light rounded-circle" onClick={() => alterarPorcoes(1)} aria-label="Aumentar porções">
+          <i className="bi bi-plus" aria-hidden="true"></i>
+        </button>
+      </div>
+      <ul className="list-unstyled d-grid gap-2 mb-0">
+        {(ingredientesBase || []).map((item, idx) => {
+          const estaChecado = checados[idx]
+          const nomeItem = typeof item === 'string'
+            ? ajustarQuantidade(item, porcoes, porcoesIniciais)
+            : item.qtdBase != null || item.quantidade != null
+              ? `${formatarQuantidade((Number(item.qtdBase ?? item.quantidade) / porcoesIniciais) * porcoes)} ${item.unidade || ''} ${item.nome || ''}`.trim()
+              : item.nome || ''
 
           return (
-            <li key={idx} className="d-flex align-items-start gap-3 mb-3">
+            <li key={`${nomeItem}-${idx}`} className="form-check">
               <input
+                id={`ingrediente-${idx}`}
                 type="checkbox"
+                className="form-check-input"
                 checked={!!estaChecado}
                 onChange={() => toggleCheck(idx)}
-                className="form-check-input mt-1 cursor-pointer shadow-none"
-                style={{ accentColor: '#1b4332', width: '1.1rem', height: '1.1rem' }}
               />
-              <span className={`small ${estaChecado ? 'text-muted text-decoration-line-through' : 'text-dark fw-medium'}`}>
-                {textoIngrediente}
-              </span>
+              <label htmlFor={`ingrediente-${idx}`} className={`form-check-label ${estaChecado ? 'text-decoration-line-through text-secondary' : ''}`}>
+                {nomeItem}
+              </label>
             </li>
-          );
+          )
         })}
       </ul>
-    </div>
-  );
+    </section>
+  )
 }
