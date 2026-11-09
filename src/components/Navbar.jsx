@@ -30,7 +30,7 @@ export default function Navbar() {
             className="rounded-circle d-flex align-items-center justify-content-center"
             style={{ width: 36, height: 36, backgroundColor: '#e8f0e6', color: '#1b4332' }}
           >
-            <i className="bi bi-flower1 fs-5"></i>
+            <i className="bi bi-flower2 fs-5"></i>
           </div>
           <span className="fw-bold fs-4" style={{ color: '#1b4332', letterSpacing: '-0.5px' }}>
             NutriFlow
