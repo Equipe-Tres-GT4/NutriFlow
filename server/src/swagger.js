@@ -1,0 +1,116 @@
+const param = (nome, tipo = 'string', exemplo) => ({ name: nome, in: 'path', required: true, schema: { type: tipo }, ...(exemplo ? { example: exemplo } : {}) })
+const query = (nome, descricao) => ({ name: nome, in: 'query', description: descricao, schema: { type: 'string' } })
+const body = (exemplo, descricao = 'JSON') => ({ required: true, description: descricao, content: { 'application/json': { schema: { type: 'object', example: exemplo } } } })
+const res = (descricao) => ({ description: descricao, content: { 'application/json': { schema: { type: 'object' } } } })
+const rota = (tag, summary, { params = [], request, protectedRoute = false, response = 'Sucesso', description = '', status = 200 } = {}) => ({
+  tags: [tag], summary, ...(description ? { description } : {}),
+  ...(params.length ? { parameters: params } : {}), ...(request ? { requestBody: body(request) } : {}),
+  ...(protectedRoute ? { security: [{ cookieJwt: [] }] } : {}),
+  responses: { [status]: status === 204 ? { description: response } : res(response), 400: res('Requisição inválida'), 401: res('Sessão ausente/expirada'), 403: res('Acesso negado'), 404: res('Não encontrado'), 409: res('Conflito com dados existentes'), 429: res('Limite de requisições'), 502: res('Falha no provedor externo'), 503: res('Serviço externo indisponível') },
+})
+const id = param('id', 'integer', 1)
+export const openapi = {
+  openapi: '3.0.3',
+  info: {
+    title: 'NutriFlow — API da Rede Social Alimentar', version: '1.0.0',
+    description: 'API própria com autenticação JWT em cookie HttpOnly, Sequelize + SQLite, CRUD de publicações, comentários, curtidas, seguidores, receitas, alimentos, coleções pessoais e integração contextual com provedores externos. Fontes e políticas: GET /api/integrations/sources. Dados nutricionais externos não substituem a consulta a profissionais.'
+  },
+  servers: [{ url: 'http://localhost:3001', description: 'API local' }, { url: '/', description: 'Mesmo domínio via proxy Vite' }],
+  tags: [
+    { name: 'Sistema', description: 'Operação e documentação' },
+    { name: 'Autenticação', description: 'Senha bcrypt, JWT 2h em cookie HttpOnly' },
+    { name: 'Perfil', description: 'Dados do usuário conectado' },
+    { name: 'Comunidade', description: 'Publicações e interações sociais com avatar do autor nos comentários' },
+    { name: 'Pessoas', description: 'Perfis públicos e seguir usuários' },
+    { name: 'Conexões', description: 'Feed de quem sigo, amigos mútuos, seguidores e sugestões' },
+    { name: 'Mensagens', description: 'Conversas privadas, leitura e envio de receitas pelo chat' },
+    { name: 'Denúncias', description: 'Denúncias de publicações e perfis, com acompanhamento privado' },
+    { name: 'Administração', description: 'Fila restrita de moderação, decisões e feedback privado' },
+    { name: 'Alimentos', description: 'Pesquisa integrada, cadastro e lista de compras pessoais' },
+    { name: 'Receitas', description: 'Receitas persistidas e busca internacional integrada' },
+    { name: 'Mídia', description: 'Upload autenticado de fotos e vídeos para receitas e perfis' },
+    { name: 'Favoritos', description: 'Itens salvos por usuário no banco de dados' },
+    { name: 'APIs externas', description: 'Adapters de provedores, com normalização, cache e atribuição; usados nas jornadas de cadastro, alimentos e receitas' },
+  ],
+  components: { securitySchemes: { cookieJwt: { type: 'apiKey', in: 'cookie', name: 'nf_token', description: 'Cookie definido automaticamente após login; HttpOnly, SameSite=Lax. Swagger UI deve estar no mesmo domínio.' } } },
+  paths: {
+    '/api/health': { get: rota('Sistema', 'Verificar disponibilidade da API') },
+    '/api/openapi.json': { get: rota('Sistema', 'Exportar especificação OpenAPI') },
+    '/api/auth/register': { post: rota('Autenticação', 'Cadastrar usuário, CEP e município opcionais e iniciar sessão', { request: { nome: 'Ana', email: 'ana@exemplo.com', senha: 'SenhaForte123', cep: '60000000', uf: 'CE', cidade: 'Fortaleza' }, response: 'Usuário público (sem hash). Cookie JWT definido', status: 201 }) },
+    '/api/auth/login': { post: rota('Autenticação', 'Entrar', { request: { email: 'ana@exemplo.com', senha: 'SenhaForte123' } }) },
+    '/api/auth/logout': { post: rota('Autenticação', 'Sair e remover cookie') },
+    '/api/auth/me': { get: rota('Autenticação', 'Dados do usuário logado', { protectedRoute: true }) },
+    '/api/profile': { patch: rota('Perfil', 'Editar dados próprios, incluindo avatar previamente enviado em /api/media', { protectedRoute: true, request: { nome: 'Ana Maria', cep: '60000000', cidade: 'Fortaleza', uf: 'CE', objetivo: 'Manutenção de Peso', fotoUrl: '/api/media/UUID.jpg' } }) },
+    '/api/foods': {
+      get: rota('Alimentos', 'Pesquisar alimentos da comunidade e do Open Food Facts', { params: [query('q', 'Nome do produto (ou EAN-8 a EAN-14). Sem termo, lista somente a comunidade')], description: 'Resultados locais preservados se um provedor externo estiver indisponível. API externa consultada somente em buscas.' }),
+      post: rota('Alimentos', 'Cadastrar um alimento com informações nutricionais por 100g/100ml', { protectedRoute: true, request: { nome: 'Aveia em flocos', marca: 'Da minha região', calorias100g: 389, proteinas100g: 16.9, carboidratos100g: 66.3 }, status: 201 }),
+    },
+    '/api/foods/{id}': { put: rota('Alimentos', 'Atualizar alimento próprio', { protectedRoute: true, params: [id], request: { nome: 'Aveia integral', marca: 'Produtor local', calorias100g: 380 } }), delete: rota('Alimentos', 'Excluir alimento próprio', { protectedRoute: true, params: [id], status: 204 }) },
+    '/api/saved/foods': {
+      get: rota('Favoritos', 'Minhas referências de alimentos guardados', { protectedRoute: true }),
+      post: rota('Favoritos', 'Guardar alimento pelo identificador local ou código externo', { protectedRoute: true, request: { chave: 'off:3017620422003' }, status: 201 }),
+    },
+    '/api/saved/foods/{chave}': { delete: rota('Favoritos', 'Remover alimento da lista pessoal', { protectedRoute: true, params: [param('chave', 'string', 'off:3017620422003')], status: 204 }) },
+    '/api/recipes': {
+      get: rota('Receitas', 'Pesquisar receitas da comunidade e TheMealDB no mesmo resultado', { params: [query('q', 'Termo; pesquisas externas acontecem quando há 2+ caracteres')] }),
+      post: rota('Receitas', 'Publicar receita com resumo, rendimento, foto/vídeo e postagem no feed', { protectedRoute: true, status: 201, request: { nome: 'Salada colorida', ingredientes: ['1 tomate', '1 pepino'], preparo: 'Pique tudo e misture bem em uma tigela.', tempoMin: 15, dificuldade: 'Fácil', resumo: 'Leve, refrescante e simples de preparar.', porcoes: 2, imagemUrl: '', videoUrl: '', receitaOriginalId: null } }),
+    },
+    '/api/recipes/surprise': { get: rota('Receitas', 'Descobrir receita aleatória TheMealDB') },
+    '/api/recipes/{chave}': {
+      get: rota('Receitas', 'Obter detalhes da receita, incluindo vídeo, resumo, rendimento, autor e versões', { params: [param('chave','string','local:1')] }),
+      put: rota('Receitas', 'Editar receita própria', { protectedRoute: true, params: [param('chave','string','1')], request: { nome: 'Salada colorida', ingredientes: ['1 tomate'], preparo: 'Higienize os ingredientes e misture.', tempoMin: 15, dificuldade: 'Fácil', resumo: 'Minha receita atualizada', porcoes: 2 } }),
+      delete: rota('Receitas', 'Excluir receita própria', { protectedRoute: true, params: [param('chave','string','1')], status: 204 }),
+    },
+    '/api/recipes/{id}/versions': { get: rota('Receitas', 'Listar versões publicadas a partir de uma receita', { params: [id], description: 'Uma nova versão é uma receita independente; POST /api/recipes com receitaOriginalId mantém vínculo com o original.' }) },
+    '/api/recipes/{id}/post': { get: rota('Comunidade', 'Localizar a publicação que concentra os comentários da receita', { params: [id] }) },
+    '/api/media': { post: { tags: ['Mídia'], summary: 'Enviar fotografia (JPG/PNG/WebP) ou vídeo (MP4/WebM)', description: 'Upload binário feito pelo seletor de arquivos do navegador (sem links fornecidos pelo usuário); fotos até 8 MB e vídeos até 25 MB. Autenticação JWT obrigatória. Retorna URL relativa /api/media/UUID.ext usada em imagemUrl, videoUrl ou fotoUrl. O cliente envia bytes com Content-Type do arquivo.', security: [{ cookieJwt: [] }], requestBody: { required: true, content: { 'image/jpeg': { schema: { type: 'string', format: 'binary' } }, 'image/png': { schema: { type: 'string', format: 'binary' } }, 'image/webp': { schema: { type: 'string', format: 'binary' } }, 'video/mp4': { schema: { type: 'string', format: 'binary' } }, 'video/webm': { schema: { type: 'string', format: 'binary' } } } }, responses: { 201: res('URL da mídia enviada'), 400: res('Arquivo ausente, tipo não aceito ou assinatura incorreta'), 401: res('Não autenticado'), 413: res('Arquivo acima do limite') } } },
+    '/api/media/{nome}': { get: { tags: ['Mídia'], summary: 'Exibir foto/vídeo enviados', parameters: [param('nome', 'string', 'UUID.jpg')], responses: { 200: { description: 'Arquivo binário original' }, 404: res('Mídia não encontrada') } } },
+    '/api/saved/recipes': {
+      get: rota('Favoritos', 'Receitas salvas para preparar depois', { protectedRoute: true }),
+      post: rota('Favoritos', 'Guardar receita local ou referência externa', { protectedRoute: true, request: { chave: 'local:1' }, status: 201 }),
+    },
+    '/api/saved/recipes/{chave}': { delete: rota('Favoritos', 'Remover receita salva', { protectedRoute: true, params: [param('chave', 'string', 'local:1')], status: 204 }) },
+    '/api/community/authors': { get: rota('Comunidade', 'Listar autores com receitas, incluindo identificação de perfis de demonstração') },
+    '/api/posts': {
+      get: rota('Comunidade', 'Feed de receitas e publicações com busca por usuário, favoritos e ordenação', { params: [query('q', 'Busca em título, conteúdo ou nome do autor'), query('page', 'Página a partir de 1'), query('autor', 'ID do autor'), query('tipo', 'receita, dica, experiencia ou todos (padrão: todos)'), query('sort', 'recentes, populares (curtidas) ou salvas (receitas mais guardadas)'), query('salvas', 'minhas: somente receitas salvas na conta; requer sessão'), query('feed', 'todos, seguindo, seguidores ou amigos. Os três últimos exigem login e incluem somente autores permitidos pela relação social')] }),
+      post: rota('Comunidade', 'Criar postagem com foto e vídeo carregados previamente em /api/media', { protectedRoute: true, request: { titulo: 'Minha alimentação hoje', conteudo: 'Incluí frutas no café da manhã e bebi água.', tipo: 'dica', imagemUrl: '/api/media/UUID.jpg', videoUrl: '/api/media/UUID.mp4' }, status: 201 }),
+    },
+    '/api/posts/{id}': {
+      get: rota('Comunidade', 'Detalhar postagem', { params: [id] }),
+      put: rota('Comunidade', 'Editar minha postagem e substituir mídia usando /api/media', { protectedRoute: true, params: [id], request: { titulo: 'Novo título', conteudo: 'Novo conteúdo com detalhes.' } }),
+      delete: rota('Comunidade', 'Excluir minha postagem (204)', { protectedRoute: true, params: [id], status: 204 }),
+    },
+    '/api/posts/{id}/like': { post: rota('Comunidade', 'Curtir ou descurtir', { protectedRoute: true, params: [id] }) },
+    '/api/posts/{id}/comments': {
+      get: rota('Comunidade', 'Listar comentários da postagem', { params: [id] }),
+      post: rota('Comunidade', 'Comentar postagem', { protectedRoute: true, params: [id], request: { texto: 'Adorei a receita!' }, status: 201 }),
+    },
+    '/api/comments/{id}': { delete: rota('Comunidade', 'Excluir comentário próprio (204)', { protectedRoute: true, params: [id], status: 204 }) },
+    '/api/social/summary': { get: rota('Conexões', 'Contadores da conta: seguindo, seguidores e amigos mútuos', { protectedRoute: true }) },
+    '/api/social/people': { get: rota('Conexões', 'Descobrir pessoas por nome e seguir de volta', { protectedRoute: true, params: [query('q', 'Nome ou parte do nome'), query('page', 'Página (20 pessoas por página)')], description: 'Não retorna e-mail, CEP, telefone nem informações sensíveis. Resposta traz flags seguindo, meSegue e amigos.' }) },
+    '/api/social/connections': { get: rota('Conexões', 'Listar pessoas que sigo, seguidores ou amizades mútuas', { protectedRoute: true, params: [query('tipo', 'seguindo, seguidores ou amigos'), query('page', 'Página (20 pessoas por página)')] }) },
+    '/api/users/{id}': { get: rota('Pessoas', 'Perfil público, contadores e relação com o visitante autenticado, sem dados privados', { params: [id] }) },
+    '/api/users/{id}/follow': {
+      put: rota('Conexões', 'Seguir usuário (idempotente, sem auto-seguimento)', { protectedRoute: true, params: [id] }),
+      delete: rota('Conexões', 'Deixar de seguir usuário (idempotente)', { protectedRoute: true, params: [id] }),
+      post: rota('Pessoas', 'Alternar seguir/deixar de seguir; rota mantida para compatibilidade', { protectedRoute: true, params: [id] }),
+    },
+    '/api/messages/unread': { get: rota('Mensagens', 'Número de mensagens privadas não lidas', { protectedRoute: true }) },
+    '/api/messages/threads': { get: rota('Mensagens', 'Minhas conversas, último texto e indicador de novas mensagens', { protectedRoute: true }) },
+    '/api/messages/{userId}': { get: rota('Mensagens', 'Histórico privado entre a conta autenticada e outra pessoa; marca mensagens recebidas como lidas', { protectedRoute: true, params: [param('userId', 'integer', 2)] }) },
+    '/api/messages': { post: rota('Mensagens', 'Enviar texto ou compartilhar receita no chat', { protectedRoute: true, status: 201, request: { destinatarioId: 2, texto: 'Acho que você vai gostar!', receitaId: 12 }, description: 'Até 2.000 caracteres; receitaId é opcional, deve existir no banco. Remetente é sempre a conta autenticada. Não é possível se passar pela equipe.' }) },
+    '/api/reports': { post: rota('Denúncias', 'Denunciar publicação ou perfil impróprio', { protectedRoute: true, status: 201, request: { tipoAlvo: 'publicacao', alvoId: 12, motivo: 'nao_e_receita', detalhes: 'Este conteúdo não é uma receita.' }, description: 'Motivos aceitos: nao_e_receita, conteudo_improprio, spam, assedio, informacao_enganosa, outro. Evita denúncias duplicadas da mesma pessoa para o mesmo alvo e não permite autodenúncia.' }) },
+    '/api/reports/mine': { get: rota('Denúncias', 'Acompanhar apenas as denúncias feitas por minha conta', { protectedRoute: true }) },
+    '/api/admin/reports': { get: rota('Administração', 'Lista de denúncias reservada a administradores', { protectedRoute: true, params: [query('status', 'pendente, mantida, orientada, removida ou todos')] }) },
+    '/api/admin/reports/{id}/review': { post: rota('Administração', 'Manter, remover publicação ou orientar usuário após revisão e enviar justificativa privada pelo chat ao autor e denunciante', { protectedRoute: true, params: [id], request: { acao: 'remover', observacao: 'Conteúdo revisado e removido por violar as regras da comunidade.' }, description: 'Somente contas com papel=admin. Exclusão automática é limitada a publicações; denúncias de perfil podem ser mantidas ou encaminhadas para análise manual. Uma denúncia já analisada retorna HTTP 409.' }) },
+    '/api/integrations/sources': { get: rota('APIs externas', 'Provedores, finalidades, links oficiais e limites') },
+    '/api/integrations/foods/search': { get: rota('APIs externas', 'Buscar produtos no Open Food Facts', { params: [query('q', 'Termo textual (2-80 caracteres)')], description: 'Usa busca textual legada oficial. Limites do fornecedor: pesquisa 10/min/IP. Há cache e controle local de 8/min para proteção.', response: 'produtos[] com nome, marca, nutrientes e fonte' }) },
+    '/api/integrations/foods/{barcode}': { get: rota('APIs externas', 'Rótulo/nutrientes pelo código de barras — Open Food Facts v3', { params: [param('barcode', 'string', '3017620422003')], response: 'produto com origem e nutrientes/100g' }) },
+    '/api/integrations/recipes/search': { get: rota('APIs externas', 'Receitas por nome — TheMealDB', { params: [query('q', 'Busca, preferencialmente em inglês')], description: 'Chave pública de desenvolvimento 1; para site público, usar chave própria de produção.' }) },
+    '/api/integrations/recipes/random': { get: rota('APIs externas', 'Receita aleatória da TheMealDB') },
+    '/api/integrations/recipes/{id}': { get: rota('APIs externas', 'Receita externa pelo ID', { params: [param('id', 'string', '52772')] }) },
+    '/api/integrations/location/cep/{cep}': { get: rota('APIs externas', 'Consultar CEP — ViaCEP, fallback BrasilAPI', { params: [param('cep', 'string', '60000000')], response: 'endereco com CEP, UF, cidade e fonte real do retorno' }) },
+    '/api/integrations/location/states': { get: rota('APIs externas', 'Listar UFs brasileiras — IBGE') },
+    '/api/integrations/location/states/{uf}/cities': { get: rota('APIs externas', 'Listar municípios de uma UF — IBGE', { params: [param('uf', 'string', 'CE')] }) },
+  },
+}

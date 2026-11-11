@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { receitas as dadosReceitas } from '../data/receitas'
 
-const RecipeContext = createContext(null)
+import { RecipeContext } from './RecipeContextValue'
 
 // Carregamento com recuperação de erros para evitar paragens no arranque
 const carregarReceitasIniciais = () => {
@@ -184,22 +184,4 @@ export function RecipeProvider({ children }) {
       {children}
     </RecipeContext.Provider>
   )
-}
-
-// Fallback para assegurar que chamadas ao hook nunca devolvam undefined
-export const useRecipes = () => {
-  const contexto = useContext(RecipeContext)
-  if (!contexto) {
-    return {
-      recipes: Array.isArray(dadosReceitas) ? dadosReceitas : [],
-      featuredRecipes: (Array.isArray(dadosReceitas) ? dadosReceitas : []).slice(0, 6),
-      savedRecipeIds: [],
-      toggleSaveRecipe: () => {},
-      rateRecipe: () => {},
-      addRecipe: () => false,
-      cloneRecipe: () => null,
-      currentUser: { id: 'usr_1', name: 'Utilizador', isAuthenticated: true },
-    }
-  }
-  return contexto
 }

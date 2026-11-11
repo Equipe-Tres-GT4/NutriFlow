@@ -1,0 +1,15 @@
+.nf-media-uploader { padding:1rem; border-radius:15px; background:#f7faf7; border:1px solid #dfe9df; }
+.nf-media-uploader-top { display:flex; align-items:baseline; justify-content:space-between; gap:.75rem; flex-wrap:wrap; margin-bottom:.8rem; }
+.nf-media-uploader-top strong { color:#24583b; }
+.nf-media-uploader-top span { color:#667a6d; font-size:.78rem; }
+.nf-media-uploader-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%,225px),1fr)); gap:1rem; }
+.nf-upload-item { min-width:0; }
+.nf-upload-picker { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; background:#fff; border:1px solid #168454; border-radius:10px; padding:.65rem .8rem; font-weight:750; color:#147d4e; cursor:pointer; }
+.nf-upload-picker:hover { background:#eaf6ee; }
+.nf-upload-item input[type=file] { display:block; max-width:100%; width:100%; font-size:.7rem; margin-top:.4rem; }
+.nf-upload-item small { color:#617667; display:block; margin:.4rem 0; }
+.nf-upload-preview { position:relative; display:flex; flex-direction:column; gap:.5rem; background:#fff; padding:.45rem; border-radius:12px; border:1px solid #e4eae5; }
+.nf-upload-preview img,.nf-upload-preview video { width:100%; max-height:245px; min-height:135px; object-fit:contain; background:#182620; border-radius:8px; }
+.nf-upload-preview button { align-self:flex-start; padding:.2rem .45rem; color:#ab3242; background:transparent; border:0; font-size:.79rem; }
+.nf-media-status { font-size:.83rem; color:#187b4c; margin:.8rem 0 0; }
+.nf-media-error { font-size:.83rem; color:#af3749; margin:.7rem 0 0; }

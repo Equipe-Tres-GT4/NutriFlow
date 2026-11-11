@@ -1,199 +1,65 @@
-// src/pages/CadastrarReceita.jsx
-import React, { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { useRecipes } from '../context/RecipeContext'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { api } from '../service/api'
+import MidiaUploader from '../components/MidiaUploader'
 
+const vazio = { nome: '', resumo: '', porcoes: '2', tempoMin: '30', dificuldade: 'Fácil', imagemUrl: '', videoUrl: '', ingredientes: '', preparo: '' }
 export default function CadastrarReceita() {
-  const { addRecipe } = useRecipes()
+  const [params] = useSearchParams()
+  const editar = params.get('editar')
+  const versao = params.get('versao')
   const navigate = useNavigate()
-
-  const [nome, setNome] = useState('')
-  const [tempo, setTempo] = useState('20 min')
-  const [dificuldade, setDificuldade] = useState('Fácil')
-  const [imagem, setImagem] = useState('/boloCenoura.jpg')
-  const [previewImagem, setPreviewImagem] = useState('')
-  const [ingredientes, setIngredientes] = useState('')
-  const [preparo, setPreparo] = useState('')
-  const [tags, setTags] = useState('Sem Alérgenos')
-
-  // Função para lidar com o upload do ficheiro do computador
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setImagem(reader.result) // Guarda a string em Base64
-        setPreviewImagem(reader.result) // Exibe a pré-visualização
-      }
-      reader.readAsDataURL(file)
-    }
+  const [form, setForm] = useState(() => ({ ...vazio, ingredientes: params.get('ingrediente') || '' }))
+  const [original, setOriginal] = useState(null)
+  const [erro, setErro] = useState('')
+  const [salvando, setSalvando] = useState(false)
+  const [enviandoMidia, setEnviandoMidia] = useState(false)
+  const [buscaIngrediente, setBuscaIngrediente] = useState('')
+  const [opcoesIngrediente, setOpcoesIngrediente] = useState([])
+  const [buscandoIngrediente, setBuscandoIngrediente] = useState(false)
+  useEffect(() => {
+    const referencia = editar || versao
+    if (!referencia || !/^local:\d+$/.test(referencia)) return
+    let ativo = true
+    api(`/recipes/${encodeURIComponent(referencia)}`).then(r => {
+      if (!ativo) return
+      const v = r.receita
+      setForm({ nome: editar ? v.nome : `Minha versão de ${v.nome}`.slice(0, 140), resumo: editar ? (v.resumo || '') : '', porcoes: String(v.porcoes || 2), tempoMin: String(v.tempoMin || 30), dificuldade: v.dificuldade || 'Fácil', imagemUrl: editar ? (v.imagem || '') : '', videoUrl: editar ? (v.video || '') : '', ingredientes: v.ingredientes.map(i => typeof i === 'string' ? i : `${i.medida || ''} ${i.nome || ''}`.trim()).join('\n'), preparo: v.preparo })
+      if (versao && !editar) setOriginal({ id: v.receitaOriginalId || Number(referencia.slice(6)), nome: v.nome, autor: v.autor?.nome })
+    }).catch(e => { if (ativo) setErro(e.message) })
+    return () => { ativo = false }
+  }, [editar, versao])
+  function mudar(e) { setForm(f => ({ ...f, [e.target.name]: e.target.value })) }
+  async function pesquisarIngrediente(e) { e.preventDefault(); if (buscaIngrediente.trim().length < 2) return; setBuscandoIngrediente(true); try { const r = await api(`/foods?q=${encodeURIComponent(buscaIngrediente.trim())}`); setOpcoesIngrediente(r.alimentos.slice(0, 8)) } catch (e) { setErro(e.message) } finally { setBuscandoIngrediente(false) } }
+  function inserirIngrediente(nome) { setForm(f => ({ ...f, ingredientes: f.ingredientes ? `${f.ingredientes.trim()}\n${nome}` : nome })); setOpcoesIngrediente([]); setBuscaIngrediente('') }
+  async function enviar(e) {
+    e.preventDefault(); setErro('')
+    if (enviandoMidia) { setErro('Aguarde o envio da mídia terminar antes de publicar.'); return }
+    setSalvando(true)
+    try {
+      const dados = { ...form, tempoMin: Number(form.tempoMin), porcoes: Number(form.porcoes), ingredientes: form.ingredientes.split('\n').map(x => x.trim()).filter(Boolean) }
+      if (original && !editar) dados.receitaOriginalId = original.id
+      const r = await api(editar ? `/recipes/${editar.slice(6)}` : '/recipes', { method: editar ? 'PUT' : 'POST', body: dados })
+      navigate(`/receitas/${encodeURIComponent(editar || r.receita.id)}`)
+    } catch (e) { setErro(e.message) } finally { setSalvando(false) }
   }
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
-
-    if (!nome.trim()) {
-      alert('Por favor, informe o título da receita.')
-      return
-    }
-
-    const novaReceita = {
-      id: Date.now().toString(),
-      nome,
-      title: nome,
-      tempo,
-      dificuldade,
-      imagem: imagem.trim() || '/boloCenoura.jpg',
-      ingredientes: ingredientes.split('\n').filter(Boolean),
-      preparo,
-      tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
-      author: 'Comunidade',
-      nota: 5.0,
-      ratingCount: 1,
-    }
-
-    addRecipe(novaReceita)
-    navigate('/receitas')
-  }
-
-  return (
-    <main className="container py-5" style={{ maxWidth: '850px' }}>
-      <div className="d-flex align-items-center justify-content-between mb-4">
-        <Link to="/receitas" className="text-decoration-none text-secondary d-flex align-items-center gap-1 small fw-semibold">
-          <i className="bi bi-arrow-left"></i> Voltar para Receitas
-        </Link>
-      </div>
-
-      <div className="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
-        <div className="mb-4 text-center">
-          <h2 className="fw-bold mb-1" style={{ color: '#1b4332' }}>
-            <i className="bi bi-journal-plus me-2"></i>Nova Receita
-          </h2>
-          <p className="text-secondary small">
-            Preencha os dados abaixo e carregue uma imagem para disponibilizar a sua receita à comunidade NutriFlow.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          <div className="mb-3">
-            <label className="form-label fw-semibold text-dark">Título da Receita</label>
-            <input
-              type="text"
-              className="form-control rounded-3 py-2"
-              placeholder="Ex: Torta Saudável de Frutas"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="row g-3 mb-3">
-            <div className="col-md-6">
-              <label className="form-label fw-semibold text-dark">Tempo de Preparo</label>
-              <input
-                type="text"
-                className="form-control rounded-3 py-2"
-                placeholder="Ex: 20 min"
-                value={tempo}
-                onChange={(e) => setTempo(e.target.value)}
-              />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label fw-semibold text-dark">Dificuldade</label>
-              <select
-                className="form-select rounded-3 py-2"
-                value={dificuldade}
-                onChange={(e) => setDificuldade(e.target.value)}
-              >
-                <option value="Fácil">Fácil</option>
-                <option value="Médio">Médio</option>
-                <option value="Difícil">Difícil</option>
-              </select>
-            </div>
-          </div>
-
-          {/* SECÇÃO DE UPLOAD DE IMAGEM */}
-          <div className="mb-3">
-            <label className="form-label fw-semibold text-dark">Imagem da Receita</label>
-            <div className="input-group mb-2">
-              <input
-                type="file"
-                accept="image/*"
-                className="form-control rounded-3 py-2"
-                onChange={handleImageUpload}
-              />
-            </div>
-            <small className="text-muted d-block mb-2">Ou insira um link/caminho alternativo abaixo:</small>
-            <input
-              type="text"
-              className="form-control rounded-3 py-2"
-              placeholder="/boloCenoura.jpg ou URL"
-              value={previewImagem ? 'Imagem carregada do computador' : imagem}
-              onChange={(e) => {
-                setImagem(e.target.value)
-                setPreviewImagem('')
-              }}
-            />
-
-            {/* PRÉ-VISUALIZAÇÃO DA IMAGEM */}
-            {(previewImagem || imagem) && (
-              <div className="mt-3 text-center">
-                <p className="small text-secondary mb-1">Pré-visualização:</p>
-                <img
-                  src={previewImagem || imagem}
-                  alt="Pré-visualização"
-                  className="rounded-3 shadow-sm border"
-                  style={{ width: '140px', height: '100px', objectFit: 'cover' }}
-                  onError={(e) => {
-                    e.target.src = 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=500&auto=format&fit=crop&q=60'
-                  }}
-                />
-              </div>
-            )}
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label fw-semibold text-dark">Tags (separadas por vírgula)</label>
-            <input
-              type="text"
-              className="form-control rounded-3 py-2"
-              placeholder="Ex: Sem Alérgenos, Vegano, Fit"
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-            />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label fw-semibold text-dark">Ingredientes (1 por linha)</label>
-            <textarea
-              className="form-control rounded-3"
-              rows={4}
-              placeholder="Ex:&#10;2 bananas maduras&#10;1 xícara de aveia"
-              value={ingredientes}
-              onChange={(e) => setIngredientes(e.target.value)}
-            ></textarea>
-          </div>
-
-          <div className="mb-4">
-            <label className="form-label fw-semibold text-dark">Modo de Preparo</label>
-            <textarea
-              className="form-control rounded-3"
-              rows={4}
-              placeholder="Descreva o passo a passo das instruções de preparo..."
-              value={preparo}
-              onChange={(e) => setPreparo(e.target.value)}
-            ></textarea>
-          </div>
-
-          <button
-            type="submit"
-            className="btn text-white w-100 py-3 rounded-3 fw-bold shadow-sm"
-            style={{ backgroundColor: '#1b4332' }}
-          >
-            Publicar Receita na Comunidade
-          </button>
-        </form>
-      </div>
-    </main>
-  )
+  return <main className="container py-5" style={{ maxWidth: 830 }}><Link to={versao ? `/receitas/${encodeURIComponent(versao)}` : '/comunidade'} className="text-success text-decoration-none">← Voltar</Link>
+    <section className="card border-0 shadow-sm rounded-4 p-4 p-md-5 mt-3"><div className="d-flex justify-content-between gap-2 align-items-start flex-wrap"><div><p className="text-success small fw-bold mb-2">NUTRIFLOW · RECEITAS</p><h1 className="h2 fw-bold">{editar ? 'Editar minha receita' : original ? 'Crie sua versão da receita' : 'Compartilhe sua receita'}</h1></div><Link to="/comunidade" className="small text-success">Ver o feed</Link></div>
+      {original && <div className="alert alert-success">Você está criando uma receita inspirada em <strong>{original.nome}</strong>{original.autor ? `, de ${original.autor}` : ''}. A versão será publicada separadamente, com referência à original.</div>}
+      <p className="text-secondary">Inclua uma foto grande ou um vídeo para dar destaque à receita no feed. Os ingredientes e o passo a passo ficam disponíveis para quem quiser preparar.</p>
+      {erro && <div className="alert alert-danger" role="alert">{erro}</div>}
+      <form onSubmit={enviar} className="row g-3">
+        <div className="col-12"><label htmlFor="rc-nome" className="form-label">Nome da receita</label><input id="rc-nome" name="nome" required minLength={3} maxLength={140} value={form.nome} onChange={mudar} className="form-control" placeholder="Ex.: Panqueca de banana com aveia"/></div>
+        <div className="col-12"><label htmlFor="rc-resumo" className="form-label">Conte sobre a receita</label><textarea id="rc-resumo" name="resumo" className="form-control" rows={3} maxLength={450} value={form.resumo} onChange={mudar} placeholder="Por que essa receita é especial? Como você gosta de servi-la?"/><div className="form-text">Esse texto aparece logo abaixo da foto no feed.</div></div>
+        <div className="col-sm-4"><label htmlFor="rc-porcoes" className="form-label">Rendimento (porções)</label><input id="rc-porcoes" type="number" name="porcoes" className="form-control" min="1" max="100" value={form.porcoes} onChange={mudar} required/></div>
+        <div className="col-sm-4"><label htmlFor="rc-tempo" className="form-label">Tempo em minutos</label><input id="rc-tempo" name="tempoMin" type="number" min="1" max="1440" required className="form-control" value={form.tempoMin} onChange={mudar}/></div>
+        <div className="col-sm-4"><label htmlFor="rc-dif" className="form-label">Dificuldade</label><select id="rc-dif" name="dificuldade" className="form-select" value={form.dificuldade} onChange={mudar}><option>Fácil</option><option>Médio</option><option>Difícil</option></select></div>
+        <div className="col-12"><MidiaUploader imagemUrl={form.imagemUrl} videoUrl={form.videoUrl} onChange={(campo, url) => setForm(prev => ({ ...prev, [campo]: url }))} onBusyChange={setEnviandoMidia}/></div>
+        <div className="col-12"><label htmlFor="rc-busca" className="form-label">Consultar alimento para os ingredientes</label><div className="input-group"><input id="rc-busca" className="form-control" value={buscaIngrediente} onChange={e => setBuscaIngrediente(e.target.value)} placeholder="Ex.: aveia, iogurte, banana"/><button type="button" className="btn btn-outline-success" disabled={buscandoIngrediente} onClick={pesquisarIngrediente}>Buscar</button></div>{opcoesIngrediente.length > 0 && <div className="list-group mt-2">{opcoesIngrediente.map((a,i) => <button type="button" className="list-group-item list-group-item-action" key={`${a.chave}-${i}`} onClick={() => inserirIngrediente(a.nome)}>{a.nome} <small className="text-success">· {a.fonte}</small><span className="float-end">+ Adicionar</span></button>)}</div>}</div>
+        <div className="col-12"><label htmlFor="rc-ingredientes" className="form-label">Ingredientes — um por linha</label><textarea id="rc-ingredientes" name="ingredientes" className="form-control" rows={6} value={form.ingredientes} onChange={mudar} required placeholder={'2 bananas\n3 colheres de aveia\n1 xícara de leite'}/></div>
+        <div className="col-12"><label htmlFor="rc-preparo" className="form-label">Modo de preparo</label><textarea id="rc-preparo" name="preparo" className="form-control" rows={7} minLength={15} value={form.preparo} onChange={mudar} required placeholder="Descreva as etapas..."/></div>
+        <div className="col-12"><button type="submit" className="btn btn-success btn-lg px-4" disabled={salvando || enviandoMidia}>{salvando ? 'Publicando...' : editar ? 'Salvar alterações' : original ? 'Publicar minha versão' : 'Publicar receita'}</button></div>
+      </form>
+    </section>
+  </main>
 }
