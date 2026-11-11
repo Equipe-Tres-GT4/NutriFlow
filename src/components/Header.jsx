@@ -1,14 +1,17 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../auth/AuthContext';
+import { useAuth } from '../auth/useAuth';
 
-import logo from '../assets/nutrilogo.png';
 import './Header.css';
 
-export default function Header({ isAuthenticated = false }) {
+export default function Header(props) {
+  const { pathname } = useLocation()
+  return <HeaderConteudo key={pathname} pathname={pathname} {...props}/>
+}
+
+function HeaderConteudo({ isAuthenticated = false, pathname }) {
   const { usuario, sair } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const [menuAberto, setMenuAberto] = useState(false);
   const menuRef = useRef(null);
 
@@ -23,10 +26,6 @@ export default function Header({ isAuthenticated = false }) {
     return () => document.removeEventListener('mousedown', handleClickFora);
   }, []);
 
-  // Fecha o menu ao trocar de página
-  useEffect(() => {
-    setMenuAberto(false);
-  }, [location]);
 
   function handleLogout() {
     sair();
@@ -48,19 +47,19 @@ export default function Header({ isAuthenticated = false }) {
         <nav className="d-none d-md-flex gap-4">
           <Link
             to="/"
-            className={`text-decoration-none fw-semibold ${location.pathname === '/' ? 'text-success' : 'text-secondary'}`}
+            className={`text-decoration-none fw-semibold ${pathname === '/' ? 'text-success' : 'text-secondary'}`}
           >
             Início
           </Link>
           <Link
             to="/alimentos"
-            className={`text-decoration-none fw-semibold ${location.pathname === '/alimentos' ? 'text-success' : 'text-secondary'}`}
+            className={`text-decoration-none fw-semibold ${pathname === '/alimentos' ? 'text-success' : 'text-secondary'}`}
           >
             Alimentos
           </Link>
           <Link
             to="/receitas"
-            className={`text-decoration-none fw-semibold ${location.pathname === '/receitas' ? 'text-success' : 'text-secondary'}`}
+            className={`text-decoration-none fw-semibold ${pathname === '/receitas' ? 'text-success' : 'text-secondary'}`}
           >
             Receitas
           </Link>

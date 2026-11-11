@@ -1,130 +1,47 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
+import { api } from '../service/api'
 
-const AuthContext = createContext({})
-
+import { AuthContext } from './AuthContextValue'
 export function AuthProvider({ children }) {
-  const [usuario, setUsuario] = useState(() => {
-    try {
-      const salvo = localStorage.getItem('nutriflow_usuario_ativo')
-      return salvo ? JSON.parse(salvo) : null
-    } catch {
-      return null
-    }
-  })
+  const [usuario, setUsuario] = useState(null)
+  const [carregando, setCarregando] = useState(true)
 
   useEffect(() => {
-    if (usuario) {
-      localStorage.setItem('nutriflow_usuario_ativo', JSON.stringify(usuario))
-    } else {
-      localStorage.removeItem('nutriflow_usuario_ativo')
-    }
-  }, [usuario])
+    // O protótipo anterior guardava senhas em texto puro no navegador.
+    // Não há migração segura sem autenticação no servidor; contas locais devem ser recriadas.
+    localStorage.removeItem('usuarios')
+    localStorage.removeItem('nutriflow_usuario_ativo')
+    let ativo = true
+    api('/auth/me')
+      .then(({ usuario }) => { if (ativo) setUsuario(usuario) })
+      .catch(() => { if (ativo) setUsuario(null) })
+      .finally(() => { if (ativo) setCarregando(false) })
+    return () => { ativo = false }
+  }, [])
 
-  function cadastrar({ nome, email, senha }) {
-    const emailLimpo = email.trim().toLowerCase()
-    const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]')
-
-    if (usuarios.some((u) => u.email === emailLimpo)) {
-      throw new Error('Já existe uma conta com este e-mail.')
-    }
-
-    const novo = {
-      id: Date.now(),
-      nome: nome.trim(),
-      email: emailLimpo,
-      senha,
-      telefone: '',
-      peso: '',
-      altura: '',
-      objetivo: 'Saúde e Longevidade',
-      restricoes: '',
-      receitasSalvas: [],
-      receitasCriadas: []
-    }
-
-    usuarios.push(novo)
-    localStorage.setItem('usuarios', JSON.stringify(usuarios))
+  async function cadastrar(dados) {
+    const r = await api('/auth/register', { method: 'POST', body: dados })
+    setUsuario(r.usuario)
+    return r.usuario
   }
-
-  function entrar({ email, senha }) {
-    const emailLimpo = email.trim().toLowerCase()
-    const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]')
-
-    const conta = usuarios.find((u) => u.email === emailLimpo && u.senha === senha)
-    if (!conta) {
-      throw new Error('E-mail ou senha incorretos.')
-    }
-
-    const { senha: _, ...dadosSessao } = conta
-    setUsuario(dadosSessao)
+  async function entrar(dados) {
+    const r = await api('/auth/login', { method: 'POST', body: dados })
+    setUsuario(r.usuario)
+    return r.usuario
   }
-
-  function sair() {
-    setUsuario(null)
+  async function sair() {
+    try { await api('/auth/logout', { method: 'POST' }) }
+    finally { setUsuario(null) }
   }
-
-  function alternarSalvarReceita(receita) {
-    if (!usuario) {
-      throw new Error('Faça login para salvar esta receita.')
-    }
-
-    const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]')
-    const idx = usuarios.findIndex((u) => u.email === usuario.email)
-    if (idx === -1) return
-
-    const salvas = usuarios[idx].receitasSalvas || []
-    const existe = salvas.some((r) => r.id === receita.id)
-
-    const novasSalvas = existe
-      ? salvas.filter((r) => r.id !== receita.id)
-      : [...salvas, receita]
-
-    usuarios[idx].receitasSalvas = novasSalvas
-    localStorage.setItem('usuarios', JSON.stringify(usuarios))
-
-    setUsuario((prev) => ({ ...prev, receitasSalvas: novasSalvas }))
-  }
-
-  function atualizarPerfil(dadosComplementares) {
-    if (!usuario) return
-
-    const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]')
-    const idx = usuarios.findIndex((u) => u.email === usuario.email)
-    if (idx === -1) return
-
-    const usuarioAtualizado = {
-      ...usuarios[idx],
-      ...dadosComplementares
-    }
-
-    usuarios[idx] = usuarioAtualizado
-    localStorage.setItem('usuarios', JSON.stringify(usuarios))
-
-    const { senha: _, ...sessaoAtualizada } = usuarioAtualizado
-    setUsuario(sessaoAtualizada)
+  async function atualizarPerfil(dados) {
+    const r = await api('/profile', { method: 'PATCH', body: dados })
+    setUsuario(r.usuario)
+    return r.usuario
   }
 
   return (
-    <AuthContext.Provider
-      value={{
-        usuario,
-        estaAutenticado: Boolean(usuario),
-        entrar,
-        cadastrar,
-        sair,
-        alternarSalvarReceita,
-        atualizarPerfil
-      }}
-    >
+    <AuthContext.Provider value={{ usuario, carregando, estaAutenticado: Boolean(usuario), cadastrar, entrar, sair, atualizarPerfil }}>
       {children}
     </AuthContext.Provider>
   )
-}
-
-export function useAuth() {
-  const contexto = useContext(AuthContext)
-  if (!contexto) {
-    throw new Error('useAuth deve ser utilizado dentro de AuthProvider')
-  }
-  return contexto
 }

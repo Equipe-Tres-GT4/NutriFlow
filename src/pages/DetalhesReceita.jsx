@@ -1,137 +1,153 @@
-import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import IngredientsList from '../components/IngredientsList'
-import NutritionCard from '../components/NutritionCard'
-import PreparationSteps from '../components/PreparationSteps'
-import { useRecipes } from '../context/RecipeContext'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { api } from '../service/api'
+import { Avatar, AutorComentario } from '../components/Avatar'
+import { useAuth } from '../auth/useAuth'
+import Denunciar from '../components/Denunciar'
+import './DetalhesReceita.css'
 
-const criarSlug = (valor) =>
-  String(valor || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
+function VideoReceita({ video, imagem, nome }) {
+  if (!video) return null
+  let embed = ''
+  try {
+    const u = new URL(video, window.location.origin)
+    const host = u.hostname.toLowerCase()
+    const id = host === 'youtu.be' ? u.pathname.slice(1) : ['youtube.com', 'www.youtube.com', 'm.youtube.com'].includes(host)
+      ? (u.searchParams.get('v') || (u.pathname.startsWith('/shorts/') ? u.pathname.split('/')[2] : '')) : ''
+    if (/^[a-zA-Z0-9_-]{11}$/.test(id)) embed = `https://www.youtube-nocookie.com/embed/${id}`
+  } catch { /* vídeos locais não precisam ser interpretados como URLs externas */ }
+  const direto = /^\/api\/media\/[-a-f0-9]{36}\.(mp4|webm)$/i.test(video) || /^https?:\/\/[^\s]+\.(mp4|webm)(?:\?[^\s]*)?$/i.test(video)
+  if (!embed && !direto) return null
+  return <section className="nf-recipe-video" aria-label="Vídeo de preparo da receita">
+    <div className="nf-video-heading"><span className="nf-video-eyebrow"><i className="bi bi-play-circle-fill"/> ASSISTA</span><h2>Veja como preparar</h2><p>Assista ao vídeo publicado junto desta receita.</p></div>
+    {embed ? <iframe src={embed} title={`Vídeo de preparo: ${nome}`} allow="encrypted-media; picture-in-picture" allowFullScreen loading="lazy" referrerPolicy="strict-origin-when-cross-origin"/>
+      : <video controls playsInline preload="metadata" poster={imagem || undefined} aria-label={`Vídeo: ${nome}`}><source src={video} type={video.toLowerCase().split('?')[0].endsWith('.webm') ? 'video/webm' : 'video/mp4'}/>Seu navegador não oferece suporte a este vídeo.</video>}
+  </section>
+}
+
+function ComentariosDaReceita({ postId, usuario }) {
+  const [comentarios, setComentarios] = useState([])
+  const [comentario, setComentario] = useState('')
+  const [erro, setErro] = useState('')
+  const [enviando, setEnviando] = useState(false)
+  const [carregando, setCarregando] = useState(true)
+  async function carregar() { setComentarios((await api(`/posts/${postId}/comments`)).comentarios) }
+  useEffect(() => {
+    let ativo = true
+    api(`/posts/${postId}/comments`).then(r => { if (ativo) setComentarios(r.comentarios) }).catch(e => { if (ativo) setErro(e.message) }).finally(() => { if (ativo) setCarregando(false) })
+    return () => { ativo = false }
+  }, [postId])
+  async function enviar(e) {
+    e.preventDefault(); if (comentario.trim().length < 2) return
+    setErro(''); setEnviando(true)
+    try {
+      await api(`/posts/${postId}/comments`, { method: 'POST', body: { texto: comentario.trim() } })
+      setComentario(''); await carregar()
+    } catch (e) { setErro(e.message) }
+    finally { setEnviando(false) }
+  }
+  async function excluir(id) {
+    setErro('')
+    try { await api(`/comments/${id}`, { method: 'DELETE' }); await carregar() }
+    catch (e) { setErro(e.message) }
+  }
+  return <section className="nf-detail-discussion" id="comentarios">
+    <div className="nf-discussion-heading"><h2>Conversa sobre a receita <span>{comentarios.length}</span></h2><p>Você preparou? Tire dúvidas, conte sua experiência ou compartilhe uma dica.</p></div>
+    {carregando && <p role="status">Carregando comentários...</p>}
+    {!carregando && comentarios.length === 0 && <p className="small text-secondary">Ainda não há comentários. Comece a conversa!</p>}
+    <div className="nf-detail-comment-list">
+      {comentarios.map(c => <article key={c.id} className="nf-detail-comment">
+        <AutorComentario autor={c.autor} autorId={c.autorId} data={c.createdAt}/>
+        <p>{c.texto}</p>
+        {usuario?.id === c.autorId && <button type="button" className="nf-subtle-danger" onClick={() => excluir(c.id)}>Excluir</button>}
+      </article>)}
+    </div>
+    {usuario ? <form className="nf-detail-comment-form" onSubmit={enviar}>
+      <Avatar pessoa={usuario} pequeno />
+      <div className="nf-detail-comment-write"><label htmlFor="nf-comment">Seu comentário</label><div className="nf-detail-comment-compose"><input id="nf-comment" value={comentario} onChange={e => setComentario(e.target.value)} required minLength={2} maxLength={1000} placeholder="Conte como ficou sua versão..."/><button disabled={enviando || comentario.trim().length < 2}>{enviando ? 'Enviando...' : 'Publicar'}</button></div></div>
+    </form> : <p className="small"><Link to="/login">Entre na conta</Link> para comentar e compartilhar seu preparo.</p>}
+    {erro && <p role="alert" className="alert alert-danger mt-3">{erro}</p>}
+  </section>
+}
 
 export default function DetalhesReceita() {
   const { id } = useParams()
-  const { recipes, savedRecipeIds, toggleSaveRecipe } = useRecipes()
-  const [compartilhado, setCompartilhado] = useState(false)
-  const receita = recipes.find((item) => {
-    const receitaId = String(item.id || item.title || item.nome)
-    const nome = item.title || item.nome
-    return receitaId === id || criarSlug(nome) === id
-  })
+  return <DetalhesReceitaConteudo key={id} id={id}/>
+}
 
-  if (!receita) {
-    return (
-      <main className="container py-5 text-center">
-        <h1 className="h3 fw-bold">Receita não encontrada</h1>
-        <p className="text-secondary mb-4">Ela pode ter sido removida ou o link está incorreto.</p>
-        <Link to="/receitas" className="btn btn-success">Voltar para receitas</Link>
-      </main>
-    )
+function DetalhesReceitaConteudo({ id }) {
+  const { usuario } = useAuth()
+  const navigate = useNavigate()
+  const [receita, setReceita] = useState(null)
+  const [salvo, setSalvo] = useState(false)
+  const [erro, setErro] = useState('')
+  const [carregando, setCarregando] = useState(true)
+  const [versoes, setVersoes] = useState([])
+  const [postId, setPostId] = useState(null)
+
+  useEffect(() => {
+    let ativo = true
+    api(`/recipes/${encodeURIComponent(id)}`).then(r => {
+      if (!ativo) return
+      setReceita(r.receita)
+      if (id.startsWith('local:')) {
+        const numero = id.slice(6)
+        api(`/recipes/${numero}/versions`).then(r => { if (ativo) setVersoes(r.versoes) }).catch(() => {})
+        api(`/recipes/${numero}/post`).then(r => { if (ativo) setPostId(r.postId) }).catch(() => {})
+      }
+    }).catch(e => { if (ativo) setErro(e.message) }).finally(() => { if (ativo) setCarregando(false) })
+    if (usuario) api('/saved/recipes').then(r => { if (ativo) setSalvo(r.receitas.some(s => s.chave === id)) }).catch(() => {})
+    return () => { ativo = false }
+  }, [id, usuario])
+
+  async function alternarSalvo() {
+    if (!usuario) return navigate('/login')
+    try {
+      await api(`/saved/recipes${salvo ? `/${encodeURIComponent(id)}` : ''}`, { method: salvo ? 'DELETE' : 'POST', ...(salvo ? {} : { body: { chave: id } }) })
+      setSalvo(!salvo)
+    } catch (e) { setErro(e.message) }
   }
-
-  const nome = receita.nome || receita.title || 'Receita'
-  const autor = receita.author || receita.autor || 'Comunidade'
-  const tempo = receita.tempoPreparo || receita.tempo || receita.time
-  const imagem = receita.imagem || receita.image
-  const ingredientes = receita.ingredientes || receita.ingredients || []
-  const passos = receita.modoPreparo || receita.passos || receita.preparationSteps || []
-  const porcoes = Number(receita.porcoes || receita.servings || 1)
-  const etiquetas = receita.tags || receita.etiquetas || []
-  const salvo = savedRecipeIds.includes(String(receita.id || receita.title || receita.nome))
-  const nutricional = receita.nutricao || receita.nutrition
-
-  const compartilhar = async () => {
-    if (!navigator.clipboard) return
-    await navigator.clipboard.writeText(window.location.href)
-    setCompartilhado(true)
-    window.setTimeout(() => setCompartilhado(false), 2000)
+  async function excluir() {
+    if (!window.confirm('Excluir sua receita? Versões feitas por outros usuários serão preservadas.')) return
+    try { await api(`/recipes/${id.slice(6)}`, { method: 'DELETE' }); navigate('/receitas') }
+    catch (e) { setErro(e.message) }
   }
-
-  return (
-    <main className="container py-4 py-lg-5">
-      <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
-        <Link to="/receitas" className="btn btn-outline-success">
-          <i className="bi bi-arrow-left me-2" aria-hidden="true"></i>
-          Voltar para receitas
-        </Link>
-        <div className="d-flex gap-2">
-          <button
-            type="button"
-            className={`btn ${salvo ? 'btn-success' : 'btn-outline-secondary'}`}
-            onClick={() => toggleSaveRecipe(String(receita.id || receita.title || receita.nome))}
-            aria-pressed={salvo}
-          >
-            <i className={`bi ${salvo ? 'bi-heart-fill' : 'bi-heart'} me-2`} aria-hidden="true"></i>
-            {salvo ? 'Salva' : 'Salvar'}
-          </button>
-          <button type="button" className="btn btn-outline-secondary" onClick={compartilhar}>
-            <i className="bi bi-share me-2" aria-hidden="true"></i>
-            {compartilhado ? 'Link copiado' : 'Compartilhar'}
-          </button>
-
+  if (carregando) return <main className="container py-5" role="status">Carregando receita...</main>
+  if (erro && !receita) return <main className="container py-5"><div role="alert" className="alert alert-danger">{erro}</div><Link to="/comunidade">Voltar à comunidade</Link></main>
+  if (!receita) return null
+  const ingredientes = receita.ingredientes || []
+  const origem = receita.receitaOriginalId
+  return <main className="nf-recipe-details container py-4 py-md-5">
+    <Link to="/comunidade" className="nf-back">← Voltar ao feed</Link>
+    <article className="nf-detail-panel mt-3">
+      <div className="nf-detail-cover"><img src={receita.imagem || '/receita.jpg'} alt={`Apresentação de ${receita.nome}`} onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = '/receita.jpg' }}/></div>
+      <div className="nf-detail-content">
+        <span className="nf-detail-label">{origem ? 'VERSÃO CRIADA PELA COMUNIDADE' : 'RECEITA PARA EXPERIMENTAR'}</span>
+        <h1>{receita.nome}</h1>
+        <div className="nf-detail-meta">
+          {receita.autor ? <Link to={`/participantes/${receita.autor.id}`} className="nf-detail-author"><Avatar pessoa={receita.autor} pequeno/><strong>{receita.autor.nome}</strong>{receita.autor.isDemo && <span className="nf-demo-tiny">DEMO</span>}</Link> : <span>Fonte: {receita.fonte || 'Catálogo'}</span>}
         </div>
+        {receita.resumo && <p className="nf-recipe-summary">{receita.resumo}</p>}
+        <div className="nf-recipe-facts">
+          {receita.tempoMin && <div><i className="bi bi-clock"/><span>Tempo</span><strong>{receita.tempoMin} min</strong></div>}
+          {receita.porcoes && <div><i className="bi bi-people"/><span>Rendimento</span><strong>{receita.porcoes} {receita.porcoes === 1 ? 'porção' : 'porções'}</strong></div>}
+          {receita.dificuldade && <div><i className="bi bi-bar-chart"/><span>Dificuldade</span><strong>{receita.dificuldade}</strong></div>}
+          <div><i className="bi bi-basket"/><span>Ingredientes</span><strong>{ingredientes.length}</strong></div>
+        </div>
+        {origem && <p className="nf-version-origin">Esta receita é uma adaptação da <Link to={`/receitas/${encodeURIComponent(`local:${origem}`)}`}>versão original</Link>. O preparo e os ingredientes foram personalizados.</p>}
+        <div className="nf-detail-buttons"><button type="button" onClick={alternarSalvo} className="nf-detail-primary"><i className={`bi ${salvo ? 'bi-bookmark-fill' : 'bi-bookmark'}`}/>{salvo ? 'Salva na coleção' : 'Salvar receita'}</button>
+          <Link to={usuario ? `/receitas/cadastrar?versao=${encodeURIComponent(id)}` : '/login'} className="nf-detail-outline"><i className="bi bi-arrow-repeat"/> Criar minha versão</Link>
+          {usuario && id.startsWith('local:') && <Link to={`/mensagens?receita=${id.slice(6)}`} className="nf-detail-outline"><i className="bi bi-send"/> Enviar por mensagem</Link>}
+          {receita.autor?.id === usuario?.id && <button type="button" onClick={excluir} className="nf-detail-danger"><i className="bi bi-trash"/> Excluir minha receita</button>}
+        </div>
+        {postId && <Denunciar tipoAlvo="publicacao" alvoId={postId} autorId={receita.autor?.id}/>}
+        {erro && <div role="alert" className="alert alert-danger">{erro}</div>}
+        {receita.fotoCredito && <p className="nf-detail-credit">Fotografia ilustrativa: <a href={receita.fotoCredito.url} target="_blank" rel="noopener noreferrer">{receita.fotoCredito.autor}</a> · {receita.fotoCredito.licenca} · {receita.fotoCredito.fonte}</p>}
+        <VideoReceita video={receita.video} imagem={receita.imagem} nome={receita.nome}/>
+        <div className="nf-detail-columns"><section><h2><i className="bi bi-list-check"/> Ingredientes</h2><ul>{ingredientes.map((i, n) => <li key={n}>{typeof i === 'string' ? i : `${i.medida ? `${i.medida} de ` : ''}${i.nome}`}</li>)}</ul></section><section><h2><i className="bi bi-journal-text"/> Modo de preparo</h2><p className="nf-preparo">{receita.preparo}</p>{receita.fonte === 'TheMealDB' && <p className="small text-secondary">Receita externa fornecida pela TheMealDB; o conteúdo pode estar em inglês.</p>}</section></div>
+        {versoes.length > 0 && <section className="nf-detail-versions"><h2>Versões feitas pela comunidade</h2><p className="small text-secondary">Veja como outras pessoas adaptaram a receita.</p><div className="nf-version-grid">{versoes.filter(v => v.id !== id).map(v => <Link key={v.id} to={`/receitas/${encodeURIComponent(v.id)}`}><img src={v.imagem || '/receita.jpg'} alt=""/><span><strong>{v.nome}</strong><small>por {v.autor?.nome || 'Participante'}</small></span></Link>)}</div></section>}
+        {postId && <ComentariosDaReceita postId={postId} usuario={usuario}/>}
       </div>
-
-      <div className="row g-4 g-lg-5">
-        <section className="col-12 col-lg-7">
-          <h1 className="h2 fw-bold mb-2" style={{ color: '#1b4332' }}>{nome}</h1>
-          <div className="d-flex flex-wrap gap-3 text-secondary small mb-3">
-            <span>Por {autor}</span>
-            {tempo && <span><i className="bi bi-clock me-1" aria-hidden="true"></i>{tempo}</span>}
-            {receita.dificuldade && <span>{receita.dificuldade}</span>}
-          </div>
-
-          {etiquetas.length > 0 && (
-            <div className="d-flex flex-wrap gap-2 mb-3">
-              {etiquetas.map((etiqueta) => (
-                <span key={etiqueta} className="badge rounded-pill text-bg-success-subtle border border-success-subtle text-success-emphasis">
-                  {etiqueta}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {imagem && (
-            <img
-              src={imagem}
-              alt={nome}
-              className="img-fluid w-100 rounded-4 mb-4"
-              style={{ maxHeight: 440, objectFit: 'cover' }}
-              onError={(event) => {
-                event.currentTarget.onerror = null
-                event.currentTarget.src = 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=900&auto=format&fit=crop&q=80'
-              }}
-            />
-          )}
-
-          {receita.descricao && <p className="text-secondary mb-4">{receita.descricao}</p>}
-
-          {nutricional && (
-            <section aria-labelledby="nutrition-title">
-              <h2 id="nutrition-title" className="h5 fw-bold mb-3">Informação nutricional</h2>
-              <div className="row g-2">
-                {Object.entries(nutricional).map(([label, valor]) => (
-                  <div className="col-6 col-md-3" key={label}>
-                    <NutritionCard valor={valor} label={label} />
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-        </section>
-
-        <aside className="col-12 col-lg-5">
-          <div className="bg-light border rounded-4 p-3 p-md-4">
-            <IngredientsList porcoesIniciais={porcoes} ingredientesBase={ingredientes} />
-            {passos.length > 0 && <hr className="my-4" />}
-            {passos.length > 0 && <PreparationSteps passos={passos} />}
-          </div>
-        </aside>
-      </div>
-    </main>
-  )
+    </article>
+  </main>
 }

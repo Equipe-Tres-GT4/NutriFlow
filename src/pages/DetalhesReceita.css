@@ -1,0 +1,69 @@
+.nf-recipe-details { max-width:1020px; }
+.nf-back { color:#1c8754; text-decoration:none; font-weight:650; font-size:.85rem; }
+.nf-detail-panel { overflow:hidden; background:white; border:1px solid #e7ece4; border-radius:20px; box-shadow:0 10px 40px #18392611; }
+.nf-detail-cover { height:min(50vw,470px); min-height:280px; background:#dbece0; }
+.nf-detail-cover img { width:100%; height:100%; object-fit:cover; display:block; }
+.nf-detail-content { padding:2rem clamp(1rem,5vw,3rem) 2.5rem; }
+.nf-detail-label { letter-spacing:.1em; color:#198557; font-size:.7rem; font-weight:850; }
+.nf-detail-content h1 { font-size:clamp(1.85rem,4vw,2.6rem); font-weight:850; color:#183b2a; margin:.5rem 0 1rem; }
+.nf-detail-meta { display:flex; gap:.8rem 1.2rem; flex-wrap:wrap; color:#687d6e; font-size:.85rem; align-items:center; }
+.nf-detail-author { display:inline-flex; align-items:center; color:#276b47; text-decoration:none; font-weight:700; gap:.35rem; }
+.nf-detail-author img { width:32px; height:32px; border-radius:50%; object-fit:cover; }
+.nf-detail-buttons { display:flex; flex-wrap:wrap; gap:.65rem; margin:1.5rem 0; }
+.nf-detail-buttons button,.nf-detail-buttons a { border-radius:10px; padding:.65rem 1rem; text-decoration:none; font-weight:750; font-size:.85rem; display:inline-flex; align-items:center; gap:.5rem; }
+.nf-detail-primary { border:0; color:white; background:#188554; }
+.nf-detail-outline { border:1px solid #bddcc8; background:white; color:#18794c; }
+.nf-detail-danger { border:1px solid #edc3c3; color:#a43b46; background:white; }
+.nf-version-origin { margin-top:1.3rem; background:#eff8ee; color:#46654d; padding:1rem; border-radius:10px; }
+.nf-version-origin a { color:#197f4d; font-weight:800; }
+.nf-detail-credit { color:#879789; font-size:.7rem; margin:.5rem 0 1rem; }
+.nf-detail-credit a { color:inherit; }
+.nf-detail-columns { display:grid; grid-template-columns:minmax(220px,.8fr) minmax(0,1.4fr); gap:2.5rem; margin:2rem 0; }
+.nf-detail-columns h2,.nf-detail-discussion h2 { font-size:1.3rem; font-weight:800; color:#20442e; margin-bottom:1.2rem; }
+.nf-detail-columns h2 i { color:#208756; font-size:1rem; }
+.nf-detail-columns ul { padding-left:1.2rem; line-height:1.9; color:#536b59; }
+.nf-preparo { white-space:pre-line; line-height:1.85; color:#536b59; }
+.nf-recipe-video,.nf-detail-versions,.nf-detail-discussion { border-top:1px solid #e7ece4; margin-top:2rem; padding-top:2rem; }
+.nf-recipe-video video,.nf-recipe-video iframe { display:block; aspect-ratio:16/9; width:100%; border:0; border-radius:12px; background:#112019; }
+.nf-version-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; }
+.nf-version-grid a { border:1px solid #e4ece5; border-radius:11px; overflow:hidden; display:flex; flex-direction:column; text-decoration:none; color:#254534; }
+.nf-version-grid img { width:100%; height:120px; object-fit:cover; }
+.nf-version-grid span { padding:.75rem; display:grid; gap:.3rem; }
+.nf-version-grid small { color:#849389; }
+.nf-detail-comment { padding:.8rem 0; border-bottom:1px solid #f0f3ee; }
+.nf-detail-comment strong { font-size:.82rem; color:#305640; }
+.nf-detail-comment p { color:#617464; margin:.3rem 0 0; font-size:.9rem; }
+.nf-detail-discussion form { margin-top:1.2rem; }
+.nf-detail-discussion h2 span { color:#a1afa2; font-size:.9rem; }
+@media(max-width:690px) { .nf-detail-columns { grid-template-columns:1fr; gap:1rem; } .nf-detail-cover { min-height:240px; height:300px; } .nf-detail-content { padding:1.25rem; } }
+/* Detalhe editorial responsivo: fotos e vídeos em destaque, avatar nos comentários */
+.nf-detail-author .nf-avatar-foto { width:35px; height:35px; }
+.nf-recipe-summary { font-size:1.05rem; line-height:1.8; color:#45634e; margin:1.25rem 0 1.3rem; }
+.nf-recipe-facts { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin:1.3rem 0; }
+.nf-recipe-facts > div { border:1px solid #e2eae2; border-radius:12px; padding:.85rem; display:grid; align-items:start; gap:.15rem; background:#f8faf7; }
+.nf-recipe-facts i { color:#188554; font-size:1.25rem; }
+.nf-recipe-facts span { font-size:.72rem; color:#829184; }
+.nf-recipe-facts strong { font-size:.88rem; color:#214a35; }
+.nf-video-heading { margin-bottom:1rem; }
+.nf-video-heading h2 { font-size:1.4rem; color:#173f29; font-weight:850; margin:.25rem 0; }
+.nf-video-heading p { font-size:.88rem; color:#6f8273; margin:0; }
+.nf-video-eyebrow { font-size:.74rem; color:#168454; font-weight:850; letter-spacing:.09em; }
+.nf-recipe-video { border-top:1px solid #e8efe8; border-bottom:1px solid #e8efe8; padding:1.5rem 0 2rem; margin:1.4rem 0; }
+.nf-recipe-video video,.nf-recipe-video iframe { width:100%; aspect-ratio:16/9; max-height:570px; border-radius:13px; }
+.nf-discussion-heading p { color:#728576; font-size:.88rem; margin-top:-.5rem; }
+.nf-detail-comment { display:flex; flex-direction:column; gap:.3rem; padding:1.1rem .1rem; }
+.nf-detail-comment p { margin:0 0 .1rem 42px; line-height:1.6; color:#476450; }
+.nf-comment-author-link { display:inline-flex; align-items:center; gap:.7rem; text-decoration:none; color:#235d3f; width:fit-content; }
+.nf-comment-author-details { display:inline-flex; align-items:center; flex-wrap:wrap; gap:.2rem .5rem; }
+.nf-comment-author-details strong { font-size:.87rem; font-weight:800; color:#2a5239; }
+.nf-comment-author-details time { font-size:.71rem; color:#87978a; }
+.nf-demo-tiny { background:#ecf5ed; color:#217c4e; font-size:.62rem; border-radius:5px; padding:.08rem .28rem; font-weight:800; }
+.nf-detail-comment-form { display:flex; align-items:flex-start; gap:.7rem; padding:1rem; border-radius:12px; background:#f4f8f4; }
+.nf-detail-comment-write { flex:1; min-width:0; }
+.nf-detail-comment-write label { font-size:.84rem; font-weight:750; display:block; margin-bottom:.35rem; }
+.nf-detail-comment-compose { display:flex; gap:.5rem; }
+.nf-detail-comment-compose input { flex:1; min-width:0; padding:.65rem; border:1px solid #d5e5d7; border-radius:9px; background:white; }
+.nf-detail-comment-compose button { border:0; background:#168454; color:white; border-radius:9px; padding:.65rem 1rem; font-weight:750; }
+.nf-detail-comment-compose button:disabled { opacity:.5; }
+.nf-detail-comment .nf-subtle-danger { margin-left:42px; color:#ab3a48; width:fit-content; background:transparent; border:0; font-size:.7rem; }
+@media(max-width:690px) { .nf-recipe-facts { grid-template-columns:repeat(2,minmax(0,1fr)); } .nf-detail-comment-compose { flex-direction:column; } .nf-detail-comment-compose button { align-self:flex-end; } }

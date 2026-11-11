@@ -22,3 +22,21 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# API / arquivos secretos
+.env
+.env.*
+!.env.example
+server/.env
+server/data/*.sqlite
+server/data/*.sqlite-*
+coverage/
+cypress/screenshots/
+cypress/videos/
+
+# Mídias enviadas por usuários (conteúdo persistente; backup separado)
+server/uploads/
+
+# Credenciais iniciais de administradores: nunca commitar
+server/.admin-seed.local.json
+server/.admin-seed*.json
