@@ -4,7 +4,6 @@ O NutriFlow inclui feed visual de receitas, favoritos, seguidores, amizades, ver
 
 **Atualização de novembro de 2026:** veja `docs/MODERACAO_CHAT_E_ADMINISTRACAO.md` para configuração das cinco contas administrativas, migração aditiva, permissões, exclusão de receitas e testes. As credenciais de demonstração são entregues em arquivo **separado**, nunca incluídas no repositório.
 
-# NutriFlow — comunidade alimentar
 
 Rede social acadêmica construída em React/Vite + Node/Express + Sequelize/SQLite. **APIs externas integram as funções reais do produto**, não aparecem como laboratório de exercícios: cadastro e perfil (CEP/IBGE), busca de alimentos (Open Food Facts), receitas (TheMealDB) e favoritos por usuário.
 
@@ -64,7 +63,7 @@ npm test              # Jest + Supertest + SQLite em memória
 npm run db:status
 ```
 
-Na raiz (com backend e frontend ativos):
+Na raiz do projeto:
 
 ```bash
 npm run build
@@ -72,7 +71,7 @@ npm run test:e2e
 npm audit
 ```
 
-Os testes Cypress precisam dos dois servidores abertos. Execute `npm audit` também dentro de `server`; investigue dependências vulneráveis antes de usar `npm audit fix --force`.
+O comando `npm run test:e2e` prepara e inicia o backend e o frontend em ambiente isolado para os testes Cypress. Execute `npm audit` também dentro de `server`; investigue dependências vulneráveis antes de usar `npm audit fix --force`.
 
 ## Onde cada serviço é utilizado
 
@@ -82,7 +81,7 @@ Leia **[`docs/INTEGRACOES_NO_PRODUTO.md`](docs/INTEGRACOES_NO_PRODUTO.md)** para
 
 - É um **projeto acadêmico**, não um serviço médico ou nutricional. Informação colaborativa pode estar incompleta; usuários devem conferir embalagens.
 - Para publicar comercialmente, obtenha licença/chave de uso da TheMealDB, revise atribuições Open Food Facts, implemente HTTPS, política de privacidade, moderação, monitoramento e backups.
-- Upload de fotos JPG/PNG/WebP (8 MB) e vídeos MP4/WebM (25 MB) é suportado localmente para receitas/perfis. Para produção, adote armazenamento externo, antivírus, política de retenção e moderação. Mensageria privada não está implementada.
+- Upload de fotos JPG/PNG/WebP (8 MB) e vídeos MP4/WebM (25 MB) é suportado localmente para receitas/perfis. Para produção, adote armazenamento externo, antivírus, política de retenção e moderação. O chat privado e as ferramentas de moderação estão implementados; consulte `docs/MODERACAO_CHAT_E_ADMINISTRACAO.md`.
 - O sistema usa SQLite para simplificar a demonstração acadêmica. Em crescimento/produção, considerar PostgreSQL e gerenciamento de mídia externo.
 - O código de padrões ensinados nas aulas foi adaptado ao contexto do produto (Express, Sequelize, middleware, migrations, cliente HTTP Axios, React e testes); nenhum link ou lista de exercícios precisa aparecer na interface.
 
