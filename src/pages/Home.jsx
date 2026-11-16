@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { receitas as dadosReceitas } from '../data/receitas'
-import { useRecipes } from '../context/RecipeContext'
+import { useRecipes } from '../context/useRecipes'
 
 // Configuração dos filtros com ícones nativos do Bootstrap (bi bi-*)
 const FILTROS = [
