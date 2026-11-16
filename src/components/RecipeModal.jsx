@@ -1,63 +1,32 @@
-import React, { useState, useEffect } from 'react'
-import { useRecipes } from '../context/RecipeContext'
+import { useState } from 'react'
+import { useRecipes } from '../context/useRecipes'
 
 export default function RecipeModal({ isOpen, onClose, initialData }) {
+  if (!isOpen) return null
+  const chave = `${initialData?.id || initialData?.nome || initialData?.title || 'nova'}`
+  return <EditorDeReceita key={chave} onClose={onClose} initialData={initialData}/>
+}
+
+const valoresIniciais = initialData => {
+  const rawIngredients = initialData?.ingredients || initialData?.ingredientes
+  const ingredients = Array.isArray(rawIngredients)
+    ? rawIngredients.map(item => typeof item === 'string' ? item : item.nome || item.name || '').filter(Boolean).join('\n')
+    : typeof rawIngredients === 'string' ? rawIngredients : ''
+  return {
+    title: initialData?.title || initialData?.nome || '',
+    time: initialData?.time || initialData?.tempo || '20 min',
+    difficulty: initialData?.difficulty || initialData?.dificuldade || 'Fácil',
+    image: initialData?.image || initialData?.imagem || '/boloCenoura.jpg',
+    tags: Array.isArray(initialData?.tags) ? initialData.tags.join(', ') : initialData?.tags || 'Sem Alérgenos',
+    ingredients,
+    instructions: initialData?.instructions || initialData?.instrucoes || initialData?.modoPreparo || '',
+  }
+}
+
+function EditorDeReceita({ onClose, initialData }) {
   const { addRecipe } = useRecipes()
 
-  const [formData, setFormData] = useState({
-    title: '',
-    time: '20 min',
-    difficulty: 'Fácil',
-    image: '/boloCenoura.jpg',
-    tags: 'Sem Alérgenos',
-    ingredients: '',
-    instructions: '',
-  })
-
-  useEffect(() => {
-    if (initialData) {
-      // Normalização: extrai strings mesmo se o array original tiver objetos { nome, alergenos }
-      let parsedIngredients = ''
-      const rawIngredients = initialData.ingredients || initialData.ingredientes
-
-      if (Array.isArray(rawIngredients)) {
-        parsedIngredients = rawIngredients
-          .map((item) => (typeof item === 'string' ? item : item.nome || item.name || ''))
-          .filter(Boolean)
-          .join('\n')
-      } else if (typeof rawIngredients === 'string') {
-        parsedIngredients = rawIngredients
-      }
-
-      setFormData({
-        title: initialData.title || initialData.nome || '',
-        time: initialData.time || initialData.tempo || '20 min',
-        difficulty: initialData.difficulty || initialData.dificuldade || 'Fácil',
-        image: initialData.image || initialData.imagem || '/boloCenoura.jpg',
-        tags: Array.isArray(initialData.tags)
-          ? initialData.tags.join(', ')
-          : initialData.tags || 'Sem Alérgenos',
-        ingredients: parsedIngredients,
-        instructions:
-          initialData.instructions ||
-          initialData.instrucoes ||
-          initialData.modoPreparo ||
-          '',
-      })
-    } else {
-      setFormData({
-        title: '',
-        time: '20 min',
-        difficulty: 'Fácil',
-        image: '/boloCenoura.jpg',
-        tags: 'Sem Alérgenos',
-        ingredients: '',
-        instructions: '',
-      })
-    }
-  }, [initialData, isOpen])
-
-  if (!isOpen) return null
+  const [formData, setFormData] = useState(() => valoresIniciais(initialData))
 
   const handleSubmit = (e) => {
     e.preventDefault()

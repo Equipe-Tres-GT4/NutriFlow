@@ -1,104 +1,30 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../auth/AuthContext'
+import { useAuth } from '../auth/useAuth'
+import { api } from '../service/api'
+import { useLocalidades } from '../hooks/useLocalidades'
 
-export default function Cadastro() {
-  const { cadastrar } = useAuth()
-  const navigate = useNavigate()
-  const [form, setForm] = useState({ nome: '', email: '', senha: '', confirmarSenha: '' })
-  const [mostrarSenha, setMostrarSenha] = useState(false)
-  const [erro, setErro] = useState('')
-
-  const mudar = (e) => setForm({ ...form, [e.target.name]: e.target.value })
-
-  function enviar(e) {
-    e.preventDefault()
-    if (form.senha.length < 6) return setErro('A senha precisa ter pelo menos 6 caracteres.')
-    if (form.senha !== form.confirmarSenha) return setErro('As senhas não coincidem.')
-    try {
-      cadastrar({ nome: form.nome, email: form.email, senha: form.senha })
-      navigate('/login')
-    } catch (err) {
-      setErro(err.message)
-    }
-  }
-
-  return (
-    <div className="nf-auth d-flex align-items-center justify-content-center p-3 my-5">
-      <form onSubmit={enviar} className="nf-card card p-4 p-md-5 shadow-sm border-0" style={{ maxWidth: 420, width: '100%' }}>
-        <div className="text-center mb-4">
-          <h2 className="fw-bold text-primary">
-            <i className="bi bi-flower2 me-2"></i>Criar conta
-          </h2>
-          <p className="text-secondary small mb-0">Cadastre-se para acompanhar sua rotina saudável</p>
-        </div>
-
-        <div className="mb-3">
-          <label className="form-label small fw-semibold">Nome</label>
-          <input
-            name="nome"
-            className="form-control form-control-lg fs-6"
-            value={form.nome}
-            onChange={mudar}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label className="form-label small fw-semibold">E-mail</label>
-          <input
-            name="email"
-            type="email"
-            pattern="[^\s@]+@[^\s@.]+(\.[^\s@.]+)+"
-            title="Use um e-mail com domínio, como nome@exemplo.com."
-            className="form-control form-control-lg fs-6"
-            value={form.email}
-            onChange={mudar}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="cadastro-senha" className="form-label small fw-semibold">Senha</label>
-          <div className="input-group">
-            <input
-              id="cadastro-senha"
-              name="senha"
-              type={mostrarSenha ? 'text' : 'password'}
-              className="form-control form-control-lg fs-6"
-              value={form.senha}
-              onChange={mudar}
-              minLength={6}
-              required
-            />
-            <button
-              type="button"
-              className="btn btn-outline-secondary"
-              onClick={() => setMostrarSenha(!mostrarSenha)}
-              aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
-            >
-              <i className={`bi ${mostrarSenha ? 'bi-eye-slash' : 'bi-eye'}`}></i>
-            </button>
-          </div>
-        </div>
-        <div className="mb-3">
-          <label htmlFor="cadastro-confirmar-senha" className="form-label small fw-semibold">Confirme a senha</label>
-          <input id="cadastro-confirmar-senha" name="confirmarSenha" type="password" className="form-control form-control-lg" value={form.confirmarSenha} onChange={mudar} required />
-        </div>
-
-        {erro && <p className="alert alert-danger py-2 small mb-3" role="alert">{erro}</p>}
-
-        <button type="submit" className="btn btn-primary btn-lg w-100 fs-6 fw-bold">Cadastrar</button>
-        <p className="text-center small mt-3 mb-0">
-          Já tem conta? <Link to="/login" className="text-decoration-none fw-semibold">Entrar</Link>
-        </p>
-
-        <hr className="my-3 text-muted" />
-
-        <div className="text-center">
-          <Link to="/" className="text-secondary small text-decoration-none">
-            <i className="bi bi-arrow-left me-1"></i> Voltar para a tela principal
-          </Link>
-        </div>
-      </form>
-    </div>
-  )
+export default function Cadastro(){
+  const { cadastrar } = useAuth(), navigate = useNavigate()
+  const [form,setForm]=useState({nome:'',email:'',senha:'',confirmarSenha:'',cep:'',logradouro:'',numero:'',bairro:'',cidade:'',uf:''})
+  const { estados, cidades, carregandoEstados, carregandoCidades, avisoEstados, avisoCidades, tentarNovamente } = useLocalidades(form.uf)
+  const [erro,setErro]=useState(''),[mensagem,setMensagem]=useState(''),[ocupado,setOcupado]=useState(false),[cepOcupado,setCepOcupado]=useState(false)
+  const mudar=e=>setForm(f=>({...f,[e.target.name]:e.target.value}))
+  async function buscarCep(){setErro('');setMensagem('');if(!/^\d{8}$/.test(form.cep.replace(/\D/g,''))){setErro('Informe um CEP com 8 dígitos.');return}setCepOcupado(true);try{const r=await api(`/integrations/location/cep/${encodeURIComponent(form.cep)}`);setForm(f=>({...f,...Object.fromEntries(['cep','logradouro','bairro','cidade','uf'].map(k=>[k,k==='uf' ? String(r.endereco[k]||'').toUpperCase() : r.endereco[k]||'']))}));setMensagem('Endereço encontrado. Confira os dados antes de continuar.')}catch(e){setErro(e.message)}finally{setCepOcupado(false)}}
+  async function enviar(e){e.preventDefault();setErro('');if(form.senha!==form.confirmarSenha){setErro('As senhas não coincidem.');return}setOcupado(true);try{const {confirmarSenha:_confirmar,...dados}=form;void _confirmar;await cadastrar(dados);navigate('/comunidade')}catch(e){setErro(e.message)}finally{setOcupado(false)}}
+  return <main className="container py-5" style={{maxWidth:760}}><div className="bg-white border-0 rounded-4 shadow-sm p-4 p-md-5"><h1 className="h2 fw-bold text-success">Criar minha conta</h1><p className="text-secondary">Participe da comunidade, compartilhe receitas e guarde alimentos favoritos. Sua localização é opcional e não será exibida em público.</p>
+    {erro&&<div role="alert" className="alert alert-danger">{erro}</div>}{mensagem&&<div role="status" className="alert alert-success">{mensagem}</div>}
+    <form onSubmit={enviar} className="row g-3"><div className="col-md-6"><label htmlFor="cd-nome" className="form-label">Nome</label><input id="cd-nome" name="nome" required minLength={2} maxLength={100} className="form-control" value={form.nome} onChange={mudar}/></div>
+      <div className="col-md-6"><label htmlFor="cd-email" className="form-label">E-mail</label><input id="cd-email" name="email" type="email" required className="form-control" value={form.email} onChange={mudar}/></div>
+      <div className="col-md-6"><label htmlFor="cd-senha" className="form-label">Senha (mínimo 8 caracteres)</label><input id="cd-senha" name="senha" type="password" minLength={8} maxLength={72} required className="form-control" value={form.senha} onChange={mudar}/></div>
+      <div className="col-md-6"><label htmlFor="cd-confirme" className="form-label">Confirmar senha</label><input id="cd-confirme" name="confirmarSenha" type="password" required className="form-control" value={form.confirmarSenha} onChange={mudar}/></div>
+      <div className="col-12 pt-3"><h2 className="h5 fw-bold">Minha localização <span className="text-secondary fw-normal small">(opcional)</span></h2><p className="text-secondary small">O CEP preenche o endereço automaticamente; estado e cidade vêm da base oficial do IBGE. Os dados não aparecem no perfil público.</p></div>
+      <div className="col-md-5"><label htmlFor="cd-cep" className="form-label">CEP</label><div className="input-group"><input id="cd-cep" name="cep" inputMode="numeric" className="form-control" placeholder="60000-000" value={form.cep} onChange={mudar}/><button className="btn btn-outline-success" disabled={cepOcupado} type="button" onClick={buscarCep}>{cepOcupado?'Buscando...':'Buscar'}</button></div></div>
+      <div className="col-md-7"><label htmlFor="cd-log" className="form-label">Rua</label><input id="cd-log" name="logradouro" className="form-control" value={form.logradouro} onChange={mudar}/></div>
+      <div className="col-md-3"><label htmlFor="cd-numero" className="form-label">Número</label><input id="cd-numero" name="numero" className="form-control" value={form.numero} onChange={mudar}/></div>
+      <div className="col-md-4"><label htmlFor="cd-bairro" className="form-label">Bairro</label><input id="cd-bairro" name="bairro" className="form-control" value={form.bairro} onChange={mudar}/></div>
+      <div className="col-md-5"><label htmlFor="cd-uf" className="form-label">Estado</label><select id="cd-uf" name="uf" className="form-select" value={form.uf} onChange={e=>setForm(f=>({...f,uf:e.target.value,cidade:''}))}><option value="">{carregandoEstados ? "Carregando estados..." : "Selecionar UF"}</option>{estados.map(x=><option value={x.sigla} key={x.id}>{x.nome}</option>)}</select>{avisoEstados && <div className="form-text" role="status">{avisoEstados}{!estados.length && <button type="button" className="btn btn-link btn-sm py-0" onClick={tentarNovamente}>Tentar novamente</button>}</div>}</div>
+      <div className="col-12"><label htmlFor="cd-cidade" className="form-label">Cidade</label><input id="cd-cidade" name="cidade" className="form-control" value={form.cidade} onChange={mudar} list="cd-cidades"/><datalist id="cd-cidades">{cidades.map(c=><option key={c.id} value={c.nome}/>)}</datalist>{form.uf && <div className="form-text" role="status">{carregandoCidades ? "Consultando municípios..." : avisoCidades || (cidades.length ? `${cidades.length} municípios disponíveis.` : "Digite sua cidade.")}</div>}</div>
+      <div className="col-12"><button className="btn btn-success w-100 py-2" disabled={ocupado}>{ocupado?'Criando conta...':'Criar conta e participar'}</button></div>
+    </form><p className="text-center small mt-3 mb-0">Já tem uma conta? <Link to="/login">Entre aqui</Link></p></div></main>
 }
