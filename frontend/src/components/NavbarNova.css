@@ -1,0 +1,8 @@
+.nf-topbar{z-index:1040}.nf-topbar-layout{min-height:72px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.nf-brand{display:flex;align-items:center;gap:10px;color:#154631;font-size:1.35rem;white-space:nowrap}
+.nf-brand-icon{width:38px;height:38px;display:grid;place-items:center;border-radius:50%;background:#e1efe4;color:#126643}
+.nf-primary-nav{display:flex;align-items:center;gap:18px;flex-wrap:wrap}.nf-nav-link{text-decoration:none;color:#55645c;font-size:.94rem;font-weight:600;padding:8px 0;border-bottom:2px solid transparent;white-space:nowrap}.nf-nav-link:hover,.nf-nav-link.nf-active{color:#0a7d4c;border-color:#0a7d4c}
+.nf-mobile-menu{display:none}
+@media(max-width:1050px){.nf-mobile-menu{display:inline-flex}.nf-topbar-layout{flex-wrap:wrap}.nf-primary-nav{display:none;width:100%;flex-direction:column;align-items:stretch;padding:8px 0 16px;gap:4px}.nf-primary-nav.nf-nav-open{display:flex}.nf-primary-nav .btn{align-self:stretch}}
+
+.nf-unread-pill { display:inline-flex; align-items:center; justify-content:center; background:#c54450; color:white; font-weight:800; padding:0 .32rem; min-width:19px; height:19px; border-radius:100px; font-size:.68rem; vertical-align:middle; }

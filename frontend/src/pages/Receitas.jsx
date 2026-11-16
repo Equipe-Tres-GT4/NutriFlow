@@ -1,0 +1,25 @@
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { useAuth } from '../auth/useAuth'
+import { api } from '../service/api'
+
+export default function Receitas() {
+  const { usuario } = useAuth()
+  const [busca, setBusca] = useState(''), [receitas, setReceitas] = useState([]), [erro, setErro] = useState(''), [aviso, setAviso] = useState(''), [ocupado,setOcupado] = useState(false), [salvos,setSalvos] = useState([])
+  const [surpresa,setSurpresa] = useState(null)
+  useEffect(()=> { api('/recipes').then(r=>setReceitas(r.receitas)).catch(e=>setErro(e.message)); if(usuario) api('/saved/recipes').then(r=>setSalvos(r.receitas)).catch(()=>{}) },[usuario])
+  async function pesquisar(e){ e?.preventDefault(); setErro('');setAviso('');setOcupado(true);setSurpresa(null); try {const r=await api(`/recipes?q=${encodeURIComponent(busca.trim())}`); setReceitas(r.receitas); setAviso(r.aviso||'')}catch(e){setErro(e.message)}finally{setOcupado(false)} }
+  async function inspirar(){setOcupado(true);setErro('');try{const r=await api('/recipes/surprise');setSurpresa(r.receita)}catch(e){setErro(e.message)}finally{setOcupado(false)}}
+  async function alternarSalvo(r){ if(!usuario){setErro('Faça login para guardar receitas.');return}setErro('');try{const salvo=salvos.some(s=>s.chave===r.id);await api(`/saved/recipes${salvo?`/${encodeURIComponent(r.id)}`:''}`,{method:salvo?'DELETE':'POST',...(salvo?{}:{body:{chave:r.id}})});setSalvos((await api('/saved/recipes')).receitas)}catch(e){setErro(e.message)} }
+  const lista = [...(surpresa?[surpresa]:[]),...receitas.filter(r=>!surpresa||r.id!==surpresa.id)]
+  return <main className="container py-5">
+    <div className="row g-3 align-items-end mb-4"><div className="col-lg-8"><span className="small fw-bold text-success">COZINHA COLETIVA</span><h1 className="fw-bold mt-2" style={{color:'#184d32'}}>Receitas para a vida real</h1><p className="text-secondary">Encontre receitas da comunidade ou descubra novas ideias internacionais. Salve as favoritas para preparar depois.</p></div><div className="col-lg-4 text-lg-end">{usuario && <Link className="btn btn-success" to="/receitas/cadastrar"><i className="bi bi-plus-lg me-2"/>Publicar minha receita</Link>}</div></div>
+    <form onSubmit={pesquisar} className="row g-2 mb-3"><div className="col-12 col-sm"><label className="visually-hidden" htmlFor="busca-receita">Buscar receita</label><input id="busca-receita" className="form-control form-control-lg" placeholder="Busque: bolo, salada, chicken, rice..." value={busca} onChange={e=>setBusca(e.target.value)}/></div><div className="col-6 col-sm-auto"><button className="btn btn-success btn-lg w-100" disabled={ocupado}>Pesquisar</button></div><div className="col-6 col-sm-auto"><button className="btn btn-outline-success btn-lg w-100" type="button" disabled={ocupado} onClick={inspirar}>Surpreenda-me</button></div></form>
+    <p className="small text-secondary">As receitas internacionais vêm da TheMealDB e podem estar em inglês; as publicações da comunidade são feitas pelos próprios participantes.</p>
+    {erro && <div className="alert alert-danger" role="alert">{erro}</div>}{aviso && <div className="alert alert-warning" role="status">{aviso}</div>}{ocupado && <p role="status">Procurando receitas...</p>}
+    {lista.length===0&&!ocupado ? <div className="card border-0 rounded-4 p-5 text-center"><p className="text-secondary mb-3">Ainda não há receitas aqui. Compartilhe a primeira ou busque uma receita pelo nome.</p><Link to={usuario?'/receitas/cadastrar':'/cadastro'} className="btn btn-success align-self-center">{usuario?'Publicar receita':'Participar da comunidade'}</Link></div>:<div className="row g-4">{lista.map(r=><div className="col-sm-6 col-xl-4" key={r.id}><article className="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
+      {r.imagem?<img src={r.imagem} loading="lazy" alt={r.nome} className="w-100" style={{height:195,objectFit:'cover'}}/>:<div className="bg-success-subtle d-grid place-items-center text-center py-5"><i className="bi bi-journal-richtext display-5 text-success"/></div>}
+      <div className="card-body d-flex flex-column"><small className="text-success fw-bold">{r.fonte==='Comunidade'?'Receita da comunidade':'Inspiração internacional · TheMealDB'}</small><h2 className="h5 fw-bold mt-2">{r.nome}</h2><p className="text-secondary small">{r.autor?.nome || (r.pais ? `Culinária de ${r.pais}` : r.categoria || 'Receita compartilhada')}{r.tempoMin ? ` · ${r.tempoMin} min`:''}</p>
+      <div className="d-flex flex-wrap gap-2 mt-auto"><Link to={`/receitas/${encodeURIComponent(r.id)}`} className="btn btn-success btn-sm">Ver ingredientes e preparo</Link><button className="btn btn-outline-success btn-sm" onClick={()=>alternarSalvo(r)} type="button"><i className={`bi ${salvos.some(s=>s.chave===r.id)?'bi-bookmark-fill':'bi-bookmark'} me-1`}/>{salvos.some(s=>s.chave===r.id)?'Salva':'Salvar'}</button></div></div></article></div>)}</div>}
+  </main>
+}
